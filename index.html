@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>座席表ビルダー</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f13;
+  --surface: #17171d;
+  --surface2: #1e1e27;
+  --surface3: #26263300;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --accent: #7c6df0;
+  --accent2: #a594f9;
+  --accent-dim: rgba(124,109,240,0.15);
+  --accent-glow: rgba(124,109,240,0.3);
+  --text: #f0eeff;
+  --text2: #a09ab8;
+  --text3: #625d78;
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,0.12);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,0.12);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251,191,36,0.12);
+  --radius: 10px;
+  --radius-lg: 16px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--text);
+}
+.logo-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn.danger { color: var(--red); border-color: rgba(248,113,113,0.3); }
+.btn.danger:hover { background: var(--red-dim); }
+.btn.sm { padding: 4px 10px; font-size: 11px; }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover { background: var(--surface2); border-color: var(--border); }
+.btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* ── Layout ── */
+.main { display: flex; height: calc(100vh - 57px); overflow: hidden; }
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* ── Sidebar sections ── */
+.sb-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sb-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.field input[type=number],
+.field input[type=text],
+.field select {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+.field select option { background: var(--surface2); }
+
+/* ── CSV Drop zone ── */
+.dropzone {
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 20px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  margin-bottom: 10px;
+}
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.dropzone-icon { font-size: 24px; margin-bottom: 6px; }
+.dropzone p { font-size: 11px; color: var(--text2); }
+.dropzone strong { color: var(--accent2); }
+.participant-list { max-height: 200px; overflow-y: auto; }
+.participant-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 6px;
+  margin-bottom: 3px;
+  background: var(--surface2);
+  font-size: 11px;
+  color: var(--text);
+}
+.participant-chip.placed { color: var(--text3); }
+.participant-chip.placed .chip-name { text-decoration: line-through; }
+.chip-no { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; min-width: 24px; }
+.chip-drag { cursor: grab; color: var(--text3); font-size: 10px; }
+.chip-drag:active { cursor: grabbing; }
+
+/* ── Stats ── */
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-card {
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 10px;
+  border: 1px solid var(--border);
+}
+.stat-card .num { font-size: 20px; font-weight: 700; color: var(--text); font-family: 'DM Mono', monospace; }
+.stat-card .lbl { font-size: 10px; color: var(--text3); }
+.stat-card.accent { border-color: var(--accent); background: var(--accent-dim); }
+.stat-card.accent .num { color: var(--accent2); }
+
+/* ── Venue ── */
+.venue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.venue-title { font-size: 13px; font-weight: 500; color: var(--text2); }
+.stage-bar {
+  background: linear-gradient(90deg, var(--accent-dim), rgba(165,148,249,0.1), var(--accent-dim));
+  border: 1px solid rgba(124,109,240,0.3);
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: .15em;
+  color: var(--accent2);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+/* ── Row blocks ── */
+.row-block {
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.row-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.row-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--text3);
+  text-transform: uppercase;
+  font-family: 'DM Mono', monospace;
+}
+.row-actions { display: flex; gap: 4px; margin-left: auto; }
+.row-tables { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; }
+
+/* ── Table cards ── */
+.table-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 10px;
+  min-width: 110px;
+  transition: border-color .15s;
+}
+.table-card:hover { border-color: rgba(124,109,240,0.4); }
+.tc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 4px;
+}
+.tc-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  width: 72px;
+  outline: none;
+}
+.tc-name:focus { color: var(--text); }
+.tc-del { color: var(--text3); cursor: pointer; font-size: 12px; padding: 2px; }
+.tc-del:hover { color: var(--red); }
+.seats-grid { display: grid; gap: 4px; }
+.seat {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  cursor: pointer;
+  color: var(--text3);
+  transition: all .15s;
+  position: relative;
+  overflow: visible;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 500;
+}
+.seat:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
+.seat.filled {
+  background: var(--accent-dim);
+  border-color: rgba(124,109,240,0.5);
+  color: var(--accent2);
+}
+.seat.drop-target { border-color: var(--green); background: var(--green-dim); }
+.seat-tip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10px;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .1s;
+  z-index: 50;
+}
+.seat:hover .seat-tip { opacity: 1; }
+.tc-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.tc-layout-sel {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+  cursor: pointer;
+}
+.add-table-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 90px;
+  min-height: 80px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text3);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.add-table-card:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
+.add-row-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px dashed var(--border);
+  margin-top: 4px;
+}
+
+/* ── Edit popup ── */
+.edit-popup {
+  position: fixed;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  z-index: 300;
+  min-width: 200px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  display: none;
+}
+.edit-popup-title { font-size: 11px; color: var(--text2); margin-bottom: 10px; }
+.edit-popup input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.edit-popup input:focus { outline: none; border-color: var(--accent); }
+.edit-popup-btns { display: flex; gap: 6px; }
+.suggest-list { max-height: 120px; overflow-y: auto; margin-bottom: 8px; }
+.suggest-item {
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--text2);
+}
+.suggest-item:hover { background: var(--accent-dim); color: var(--accent2); }
+
+/* ── Tabs ── */
+.tabs { display: flex; gap: 2px; margin-bottom: 16px; }
+.tab-btn {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-family: inherit;
+  transition: all .15s;
+}
+.tab-btn.active { background: var(--accent-dim); color: var(--accent2); }
+.tab-btn:hover:not(.active) { color: var(--text2); background: var(--surface2); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── List view ── */
+.list-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.list-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--text3);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.list-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.list-table tr:hover td { background: var(--surface2); }
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 500;
+}
+.badge.filled { background: var(--accent-dim); color: var(--accent2); }
+.badge.empty { background: var(--surface2); color: var(--text3); }
+
+/* ── Share ── */
+.share-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.share-box p { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
+.share-url {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+.share-url:focus { outline: none; }
+.output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.output-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.output-card h3 { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+.output-card p { font-size: 11px; color: var(--text2); margin-bottom: 10px; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--text);
+  z-index: 999;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all .2s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { border-color: rgba(74,222,128,0.4); color: var(--green); }
+
+/* ── Print ── */
+@media print {
+  body { background: #fff; color: #000; }
+  .header, .sidebar, .add-row-area, .row-actions, .tc-footer, .venue-header { display: none !important; }
+  .main { display: block; }
+  .content { padding: 0; overflow: visible; }
+  .row-block { border: 1px solid #ddd; break-inside: avoid; }
+  .row-header { background: #f5f5f5; }
+  .table-card { background: #fafafa; border: 1px solid #ddd; }
+  .seat { border: 1px solid #aaa; background: #f0f0f0; color: #333; }
+  .seat.filled { background: #e8e4ff; border-color: #9b8eff; color: #3d2fb3; }
+  .stage-bar { background: #f0ecff; color: #534AB7; border-color: #9b8eff; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    座席表ビルダー
+  </div>
+  <div class="header-actions">
+    <button class="btn sm" onclick="exportCSV()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      CSV出力
+    </button>
+    <button class="btn sm" onclick="copyShareUrl()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      URLで共有
+    </button>
+    <button class="btn sm primary" onclick="window.print()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      印刷・PDF
+    </button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <!-- CSV Import -->
+    <div class="sb-section">
+      <div class="sb-title">参加者インポート</div>
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('csvInput').click()">
+        <div class="dropzone-icon">📂</div>
+        <p><strong>TonemelのCSVをドロップ</strong><br>またはクリックして選択</p>
+      </div>
+      <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleCSV(event)">
+      <div id="participantArea" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span id="participantCount" style="font-size:11px;color:var(--text2)"></span>
+          <button class="btn sm" onclick="autoAssign()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            自動割り当て
+          </button>
+        </div>
+        <div class="participant-list" id="participantList"></div>
+      </div>
+    </div>
+
+    <!-- Row settings -->
+    <div class="sb-section">
+      <div class="sb-title">列を追加</div>
+      <div class="field">
+        <label>卓数（横に何卓）</label>
+        <input type="number" id="rowCols" min="1" max="10" value="3">
+      </div>
+      <div class="field">
+        <label>席数/卓</label>
+        <input type="number" id="defSeats" min="1" max="12" value="6">
+      </div>
+      <div class="field">
+        <label>席の並び</label>
+        <select id="defLayout">
+          <option value="2x3">2列 × 3行</option>
+          <option value="3x2">3列 × 2行</option>
+          <option value="1x6">1列 × 6行</option>
+          <option value="6x1">6列 × 1行</option>
+          <option value="2x2">2列 × 2行（4席）</option>
+          <option value="4x1">4列 × 1行（4席）</option>
+          <option value="3x3">3列 × 3行（9席）</option>
+          <option value="2x4">2列 × 4行（8席）</option>
+          <option value="4x2">4列 × 2行（8席）</option>
+        </select>
+      </div>
+      <button class="btn primary" style="width:100%" onclick="addRow()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        列を追加
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="sb-section">
+      <div class="sb-title">サマリー</div>
+      <div class="stats" id="statsArea">
+        <div class="stat-card"><div class="num">0</div><div class="lbl">列</div></div>
+        <div class="stat-card"><div class="num">0</div><div class="lbl">卓</div></div>
+        <div class="stat-card accent"><div class="num">0</div><div class="lbl">着席済み</div></div>
+        <div class="stat-card"><div class="num">0</div><div class="lbl">空席</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('layout')">会場レイアウト</button>
+      <button class="tab-btn" onclick="switchTab('list')">一覧表</button>
+    </div>
+
+    <div id="tab-layout" class="tab-panel active">
+      <div class="venue-header">
+        <span class="venue-title">会場レイアウト</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn sm ghost" onclick="clearAllNames()">名前をクリア</button>
+        </div>
+      </div>
+      <div class="stage-bar">▲ ステージ / 司会席</div>
+      <div id="venueRows"></div>
+      <div class="add-row-area">
+        <button class="btn ghost" onclick="addRow()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          列を追加
+        </button>
+        <span style="font-size:11px;color:var(--text3)">卓名・席をクリックして名前を入力 / ドラッグで入れ替え</span>
+      </div>
+    </div>
+
+    <div id="tab-list" class="tab-panel">
+      <div id="listViewArea"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit popup -->
+<div class="edit-popup" id="editPopup">
+  <div class="edit-popup-title" id="editPopupTitle">席の名前</div>
+  <input type="text" id="editInput" placeholder="名前を入力（空欄で削除）" maxlength="12" autocomplete="off">
+  <div class="suggest-list" id="suggestList"></div>
+  <div class="edit-popup-btns">
+    <button class="btn sm primary" onclick="confirmEdit()">確定</button>
+    <button class="btn sm danger" onclick="clearSeat()">空にする</button>
+    <button class="btn sm ghost" onclick="closeEdit()">キャンセル</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────
+let rows = [];
+let participants = [];
+let editTarget = null;
+let dragParticipant = null;
+
+const LAYOUTS = {
+  '2x3':{c:2,r:3},'3x2':{c:3,r:2},
+  '1x6':{c:1,r:6},'6x1':{c:6,r:1},
+  '2x2':{c:2,r:2},'4x1':{c:4,r:1},
+  '3x3':{c:3,r:3},'2x4':{c:2,r:4},'4x2':{c:4,r:2},
+};
+
+// ── CSV Parse ──────────────────────────────────────────────
+function handleCSV(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => parseCSV(ev.target.result);
+  reader.readAsText(file, 'UTF-8');
+}
+
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) { const r = new FileReader(); r.onload = ev => parseCSV(ev.target.result); r.readAsText(file, 'UTF-8'); }
+});
+
+function parseCSV(text) {
+  // Remove BOM
+  text = text.replace(/^\uFEFF/, '');
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  const headers = splitCSVLine(lines[0]);
+
+  // Find column indices
+  const idxEntryName = headers.indexOf('エントリー名');
+  const idxStatus = headers.indexOf('ステータス');
+  const idxType = headers.indexOf('エントリー種別');
+
+  const out = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = splitCSVLine(lines[i]);
+    const status = cols[idxStatus] || '';
+    const type = cols[idxType] || '';
+    if (status !== '出場') continue;
+    // エントリー名は列3(index 2)が基本、複数ある場合は最初の非空
+    let name = '';
+    for (let j = 2; j < Math.min(cols.length, 15); j++) {
+      const v = cols[j].trim();
+      if (v && v !== 'はい、使用可能です' && v !== 'いいえ、参加していません！' && v !== 'はい、参加しました！' && v !== 'いいえ、複数回目の参加です' && v !== 'はい、初参加です' && !v.startsWith('@') && !v.match(/^\d{4}-/)) {
+        name = v; break;
+      }
+    }
+    if (!name) name = cols[2] || cols[1] || '不明';
+    out.push({ name: name.trim(), type, placed: false });
+  }
+
+  participants = out;
+  renderParticipants();
+  showToast(`${out.length}人の出場者を読み込みました`, 'success');
+}
+
+function splitCSVLine(line) {
+  const result = [];
+  let cur = '';
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += ch; }
+  }
+  result.push(cur);
+  return result;
+}
+
+function renderParticipants() {
+  const area = document.getElementById('participantArea');
+  const list = document.getElementById('participantList');
+  const count = document.getElementById('participantCount');
+  area.style.display = 'block';
+  const placed = getAllPlacedNames();
+  participants.forEach(p => { p.placed = placed.includes(p.name); });
+  count.textContent = `${participants.filter(p=>!p.placed).length} / ${participants.length} 人未配置`;
+  list.innerHTML = '';
+  participants.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'participant-chip' + (p.placed ? ' placed' : '');
+    div.draggable = !p.placed;
+    div.innerHTML = `<span class="chip-no">${i+1}</span><span class="chip-name">${p.name}</span><span class="chip-drag">${p.placed ? '✓' : '⠿'}</span>`;
+    if (!p.placed) {
+      div.addEventListener('dragstart', e => {
+        dragParticipant = p.name;
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+    list.appendChild(div);
+  });
+}
+
+function getAllPlacedNames() {
+  const names = [];
+  rows.forEach(r => r.tables.forEach(t => t.seats.forEach(s => { if (s) names.push(s); })));
+  return names;
+}
+
+// ── Auto-assign ─────────────────────────────────────────────
+function autoAssign() {
+  const unplaced = participants.filter(p => !p.placed).map(p => p.name);
+  let idx = 0;
+  rows.forEach(r => r.tables.forEach(t => {
+    t.seats = t.seats.map(s => {
+      if (!s && idx < unplaced.length) return unplaced[idx++];
+      return s;
+    });
+  }));
+  render();
+  showToast(`${idx}人を自動割り当てしました`, 'success');
+}
+
+// ── Rows & Tables ───────────────────────────────────────────
+function totalTables() { return rows.reduce((a, r) => a + r.tables.length, 0); }
+
+function makeSeats(n) { return Array.from({length: n}, () => ''); }
+
+function getLayoutSeats(key) {
+  const cfg = LAYOUTS[key] || {c:2, r:3};
+  return cfg.c * cfg.r;
+}
+
+function addRow() {
+  const cols = parseInt(document.getElementById('rowCols').value) || 3;
+  const seats = parseInt(document.getElementById('defSeats').value) || 6;
+  const layout = document.getElementById('defLayout').value;
+  const seatCount = getLayoutSeats(layout);
+  const id = Date.now();
+  const tables = Array.from({length: cols}, (_, i) => ({
+    id: id + '_' + i,
+    name: `卓${totalTables() + i + 1}`,
+    seats: makeSeats(seatCount || seats),
+    layout,
+  }));
+  rows.push({id, tables});
+  render();
+}
+
+// ── Render ──────────────────────────────────────────────────
+function render() {
+  const container = document.getElementById('venueRows');
+  container.innerHTML = '';
+  rows.forEach((row, ri) => {
+    const block = document.createElement('div');
+    block.className = 'row-block';
+
+    // Header
+    const hdr = document.createElement('div');
+    hdr.className = 'row-header';
+    hdr.innerHTML = `<span class="row-label">ROW ${ri + 1}</span><span style="font-size:11px;color:var(--text3)">${row.tables.length}卓</span>`;
+    const acts = document.createElement('div');
+    acts.className = 'row-actions';
+    const addT = mkBtn('+ 卓', 'sm ghost', () => {
+      const seats = parseInt(document.getElementById('defSeats').value) || 6;
+      const layout = document.getElementById('defLayout').value;
+      const sc = getLayoutSeats(layout);
+      row.tables.push({id: Date.now(), name: `卓${totalTables()+1}`, seats: makeSeats(sc||seats), layout});
+      render();
+    });
+    const delRow = mkBtn('列を削除', 'sm danger', () => { rows = rows.filter(r => r.id !== row.id); render(); });
+    acts.appendChild(addT);
+    acts.appendChild(delRow);
+    hdr.appendChild(acts);
+    block.appendChild(hdr);
+
+    // Tables
+    const tablesDiv = document.createElement('div');
+    tablesDiv.className = 'row-tables';
+    row.tables.forEach(t => tablesDiv.appendChild(makeTableCard(t, row)));
+
+    // Add table placeholder
+    const addCard = document.createElement('div');
+    addCard.className = 'add-table-card';
+    addCard.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>卓追加';
+    addCard.onclick = () => {
+      const seats = parseInt(document.getElementById('defSeats').value) || 6;
+      const layout = document.getElementById('defLayout').value;
+      const sc = getLayoutSeats(layout);
+      row.tables.push({id: Date.now(), name: `卓${totalTables()+1}`, seats: makeSeats(sc||seats), layout});
+      render();
+    };
+    tablesDiv.appendChild(addCard);
+    block.appendChild(tablesDiv);
+    container.appendChild(block);
+  });
+  updateStats();
+  if (participants.length) renderParticipants();
+  updateListView();
+  updateShareUrl();
+}
+
+function makeTableCard(t, row) {
+  const card = document.createElement('div');
+  card.className = 'table-card';
+
+  // Head
+  const head = document.createElement('div');
+  head.className = 'tc-head';
+  const nameInp = document.createElement('input');
+  nameInp.className = 'tc-name';
+  nameInp.value = t.name;
+  nameInp.onchange = e => { t.name = e.target.value; updateListView(); updateShareUrl(); };
+  const delBtn = document.createElement('span');
+  delBtn.className = 'tc-del';
+  delBtn.innerHTML = '×';
+  delBtn.title = '卓を削除';
+  delBtn.onclick = () => { row.tables = row.tables.filter(x => x.id !== t.id); render(); };
+  head.appendChild(nameInp);
+  head.appendChild(delBtn);
+  card.appendChild(head);
+
+  // Seats
+  const cfg = LAYOUTS[t.layout] || {c:2, r:3};
+  const sg = document.createElement('div');
+  sg.className = 'seats-grid';
+  sg.style.gridTemplateColumns = `repeat(${cfg.c}, 30px)`;
+
+  t.seats.forEach((name, si) => {
+    const seat = document.createElement('div');
+    seat.className = 'seat' + (name ? ' filled' : '');
+    if (name) {
+      seat.textContent = name.length > 4 ? name.slice(0,3)+'…' : name;
+      seat.innerHTML += `<div class="seat-tip">${name}</div>`;
+    } else {
+      seat.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+    }
+    seat.onclick = e => { e.stopPropagation(); openEdit(e, t, si); };
+
+    // Drop target for drag-from-list
+    seat.addEventListener('dragover', e => { e.preventDefault(); seat.classList.add('drop-target'); });
+    seat.addEventListener('dragleave', () => seat.classList.remove('drop-target'));
+    seat.addEventListener('drop', e => {
+      e.preventDefault();
+      seat.classList.remove('drop-target');
+      if (dragParticipant) {
+        t.seats[si] = dragParticipant;
+        dragParticipant = null;
+        render();
+      }
+    });
+    sg.appendChild(seat);
+  });
+  card.appendChild(sg);
+
+  // Footer
+  const foot = document.createElement('div');
+  foot.className = 'tc-footer';
+  const sel = document.createElement('select');
+  sel.className = 'tc-layout-sel';
+  Object.keys(LAYOUTS).forEach(k => {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = k;
+    if (k === t.layout) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.onchange = e => {
+    t.layout = e.target.value;
+    const n = getLayoutSeats(t.layout);
+    while (t.seats.length < n) t.seats.push('');
+    if (t.seats.length > n) t.seats = t.seats.slice(0, n);
+    render();
+  };
+  const addS = mkBtn('+席', 'sm ghost', () => { t.seats.push(''); render(); });
+  const delS = mkBtn('-席', 'sm ghost', () => { if (t.seats.length > 1) { t.seats.pop(); render(); } });
+  foot.appendChild(sel);
+  foot.appendChild(addS);
+  foot.appendChild(delS);
+  card.appendChild(foot);
+  return card;
+}
+
+function mkBtn(text, cls, fn) {
+  const b = document.createElement('button');
+  b.className = 'btn ' + cls;
+  b.textContent = text;
+  b.onclick = fn;
+  return b;
+}
+
+// ── Edit popup ──────────────────────────────────────────────
+function openEdit(e, t, si) {
+  editTarget = {t, si};
+  const popup = document.getElementById('editPopup');
+  const inp = document.getElementById('editInput');
+  document.getElementById('editPopupTitle').textContent = `${t.name} — ${si+1}番席`;
+  inp.value = t.seats[si];
+
+  // Suggestions from unplaced participants
+  const placed = getAllPlacedNames();
+  const unplaced = participants.filter(p => !placed.includes(p.name) || p.name === t.seats[si]);
+  const sl = document.getElementById('suggestList');
+  sl.innerHTML = '';
+  if (unplaced.length) {
+    unplaced.slice(0, 8).forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'suggest-item';
+      item.textContent = p.name;
+      item.onclick = () => { inp.value = p.name; confirmEdit(); };
+      sl.appendChild(item);
+    });
+  }
+
+  const rect = e.target.getBoundingClientRect();
+  popup.style.display = 'block';
+  const ph = popup.offsetHeight || 200;
+  let top = rect.bottom + 4;
+  if (top + ph > window.innerHeight) top = rect.top - ph - 4;
+  popup.style.top = Math.max(0, top) + 'px';
+  popup.style.left = Math.min(rect.left, window.innerWidth - 220) + 'px';
+  setTimeout(() => inp.focus(), 10);
+}
+
+function confirmEdit() {
+  if (!editTarget) return;
+  editTarget.t.seats[editTarget.si] = document.getElementById('editInput').value.trim();
+  closeEdit();
+  render();
+}
+
+function clearSeat() {
+  if (!editTarget) return;
+  editTarget.t.seats[editTarget.si] = '';
+  closeEdit();
+  render();
+}
+
+function closeEdit() {
+  document.getElementById('editPopup').style.display = 'none';
+  editTarget = null;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && editTarget) confirmEdit();
+  if (e.key === 'Escape') closeEdit();
+});
+document.addEventListener('click', e => {
+  if (editTarget && !document.getElementById('editPopup').contains(e.target)) closeEdit();
+});
+
+// ── Stats ───────────────────────────────────────────────────
+function updateStats() {
+  let totalR = rows.length, totalT = 0, totalS = 0, filledS = 0;
+  rows.forEach(r => r.tables.forEach(t => { totalT++; totalS += t.seats.length; filledS += t.seats.filter(s=>s).length; }));
+  const sa = document.getElementById('statsArea');
+  sa.innerHTML = `
+    <div class="stat-card"><div class="num">${totalR}</div><div class="lbl">列</div></div>
+    <div class="stat-card"><div class="num">${totalT}</div><div class="lbl">卓</div></div>
+    <div class="stat-card accent"><div class="num">${filledS}</div><div class="lbl">着席済み</div></div>
+    <div class="stat-card"><div class="num">${totalS - filledS}</div><div class="lbl">空席</div></div>`;
+}
+
+// ── List view ───────────────────────────────────────────────
+function updateListView() {
+  const area = document.getElementById('listViewArea');
+  let html = '<table class="list-table"><thead><tr><th>列</th><th>卓名</th><th>席</th><th>参加者名</th><th>ステータス</th></tr></thead><tbody>';
+  rows.forEach((row, ri) => {
+    row.tables.forEach(t => {
+      t.seats.forEach((name, si) => {
+        html += `<tr><td>ROW ${ri+1}</td><td>${t.name}</td><td>${si+1}</td><td>${name || '—'}</td><td><span class="badge ${name?'filled':'empty'}">${name?'着席':'空席'}</span></td></tr>`;
+      });
+    });
+  });
+  html += '</tbody></table>';
+  area.innerHTML = html;
+}
+
+// ── Tabs ─────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', ['layout','list'][i] === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'list') updateListView();
+}
+
+// ── Export ───────────────────────────────────────────────────
+function exportCSV() {
+  let csv = '列,卓名,席番号,参加者名\n';
+  rows.forEach((row, ri) => {
+    row.tables.forEach(t => {
+      t.seats.forEach((name, si) => {
+        csv += `ROW${ri+1},"${t.name}",${si+1},"${name}"\n`;
+      });
+    });
+  });
+  const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '座席表.csv';
+  a.click();
+  showToast('CSVをダウンロードしました', 'success');
+}
+
+// ── Share URL ────────────────────────────────────────────────
+function updateShareUrl() {}
+
+function copyShareUrl() {
+  const data = JSON.stringify(rows);
+  try {
+    const enc = btoa(unescape(encodeURIComponent(data)));
+    const url = location.href.split('?')[0] + '?d=' + enc;
+    navigator.clipboard.writeText(url).then(() => showToast('URLをコピーしました！', 'success'));
+  } catch(e) {
+    showToast('データが大きすぎます。CSVで出力してください', '');
+  }
+}
+
+// ── Misc ─────────────────────────────────────────────────────
+function clearAllNames() {
+  if (!confirm('全員の名前を削除しますか？')) return;
+  rows.forEach(r => r.tables.forEach(t => t.seats = t.seats.map(() => '')));
+  render();
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// ── Init ─────────────────────────────────────────────────────
+(function init() {
+  const saved = new URLSearchParams(location.search).get('d');
+  if (saved) {
+    try { rows = JSON.parse(decodeURIComponent(escape(atob(saved)))); render(); return; } catch(e){}
+  }
+  // Default: 2 rows of 3 tables, 6 seats each (2x3)
+  document.getElementById('rowCols').value = 3;
+  document.getElementById('defSeats').value = 6;
+  document.getElementById('defLayout').value = '2x3';
+  addRow();
+  addRow();
+})();
+</script>
+</body>
+</html>
