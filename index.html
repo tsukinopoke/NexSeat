@@ -506,14 +506,19 @@ body {
     座席表ビルダー
   </div>
   <div class="header-actions">
+    <div id="autosave-indicator" style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;padding:0 4px">
+      <span id="autosave-dot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block"></span>
+      <span id="autosave-label">—</span>
+    </div>
     <button class="btn sm" onclick="exportCSV()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      CSV出力
+      座席表CSV保存
     </button>
-    <button class="btn sm" onclick="copyShareUrl()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-      URLで共有
+    <button class="btn sm" onclick="document.getElementById('restoreCsvIn').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      CSV復元
     </button>
+    <input type="file" id="restoreCsvIn" accept=".csv" style="display:none" onchange="restoreFromCSV(event)">
     <button class="btn sm primary" onclick="window.print()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       印刷・PDF
@@ -634,8 +639,11 @@ body {
 // ── State ──────────────────────────────────────────────────
 let rows = [];
 let participants = [];
+let banPairs = [];
 let editTarget = null;
 let dragParticipant = null;
+const LS_KEY = 'nexseat_autosave';
+let autosaveTimer = null;
 
 const LAYOUTS = {
   '2x3':{c:2,r:3},'3x2':{c:3,r:2},
@@ -831,7 +839,7 @@ function render() {
   updateStats();
   if (participants.length) renderParticipants();
   updateListView();
-  updateShareUrl();
+  scheduleAutosave();
 }
 
 function makeTableCard(t, row) {
@@ -1018,8 +1026,16 @@ function switchTab(name) {
 }
 
 // ── Export ───────────────────────────────────────────────────
+// ── CSV Export（座席表保存用・レイアウト情報込み） ────────────────
 function exportCSV() {
-  let csv = '列,卓名,席番号,参加者名\n';
+  // 1行目: メタデータ（レイアウト復元用）
+  let csv = '#NEXSEAT_V1\n';
+  csv += '#LAYOUT:' + JSON.stringify(rows.map(row => ({
+    id: row.id,
+    tables: row.tables.map(t => ({ id: t.id, name: t.name, layout: t.layout, seatCount: t.seats.length }))
+  }))) + '\n';
+  // 2行目以降: 席データ
+  csv += '列,卓名,席番号,参加者名\n';
   rows.forEach((row, ri) => {
     row.tables.forEach(t => {
       t.seats.forEach((name, si) => {
@@ -1027,27 +1043,93 @@ function exportCSV() {
       });
     });
   });
+  const now = new Date();
+  const dateStr = `${now.getMonth()+1}${now.getDate()}_${now.getHours()}${String(now.getMinutes()).padStart(2,'0')}`;
   const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = '座席表.csv';
+  a.download = `座席表_${dateStr}.csv`;
   a.click();
-  showToast('CSVをダウンロードしました', 'success');
+  showToast('座席表CSVを保存しました', 'success');
 }
 
-// ── Share URL ────────────────────────────────────────────────
-function updateShareUrl() {}
+// ── CSV Restore（座席表CSVから復元） ────────────────────────────
+function restoreFromCSV(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const rd = new FileReader();
+  rd.onload = ev => {
+    try {
+      const text = ev.target.result.replace(/^\uFEFF/, '');
+      const lines = text.split('\n');
+      // NexSeat形式かチェック
+      if (!lines[0].startsWith('#NEXSEAT_V1')) {
+        showToast('NexSeatの座席表CSVではありません', 'err');
+        e.target.value = '';
+        return;
+      }
+      // レイアウト情報を復元
+      const layoutLine = lines[1].replace('#LAYOUT:', '');
+      const layoutData = JSON.parse(layoutLine);
+      // 席データを解析
+      const seatMap = {}; // "列_卓名_席番号" -> 参加者名
+      for (let i = 3; i < lines.length; i++) {
+        const cols = splitLine(lines[i].trim());
+        if (cols.length < 4) continue;
+        const key = `${cols[0]}_${cols[1]}_${cols[2]}`;
+        seatMap[key] = cols[3];
+      }
+      // rowsを再構築
+      rows = layoutData.map((rowData, ri) => ({
+        id: rowData.id || Date.now() + ri,
+        tables: rowData.tables.map((tData, ti) => ({
+          id: tData.id || Date.now() + ri * 100 + ti,
+          name: tData.name,
+          layout: tData.layout,
+          seats: Array.from({length: tData.seatCount}, (_, si) => {
+            const key = `ROW${ri+1}_${tData.name}_${si+1}`;
+            return seatMap[key] || '';
+          })
+        }))
+      }));
+      render();
+      saveToLocalStorage();
+      showToast('座席表を復元しました！', 'success');
+    } catch(err) {
+      showToast('CSVの読み込みに失敗しました', 'err');
+      console.error(err);
+    }
+    e.target.value = '';
+  };
+  rd.readAsText(file, 'UTF-8');
+}
 
-function copyShareUrl() {
-  const data = JSON.stringify(rows);
+// ── 自動保存（localStorage） ─────────────────────────────────
+function saveToLocalStorage() {
   try {
-    const enc = btoa(unescape(encodeURIComponent(data)));
-    const url = location.href.split('?')[0] + '?d=' + enc;
-    navigator.clipboard.writeText(url).then(() => showToast('URLをコピーしました！', 'success'));
-  } catch(e) {
-    showToast('データが大きすぎます。CSVで出力してください', '');
-  }
+    const data = { rows, participants, banPairs, savedAt: new Date().toISOString() };
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+    updateAutosaveIndicator(data.savedAt);
+  } catch(e) { console.warn('自動保存失敗', e); }
 }
+
+function updateAutosaveIndicator(isoStr) {
+  const dot = document.getElementById('autosave-dot');
+  const label = document.getElementById('autosave-label');
+  if (!dot || !label) return;
+  const d = new Date(isoStr);
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  dot.style.background = 'var(--green, #4ade80)';
+  label.textContent = `自動保存 ${hh}:${mm}`;
+}
+
+function scheduleAutosave() {
+  if (autosaveTimer) clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => saveToLocalStorage(), 1500);
+}
+
+
 
 // ── Misc ─────────────────────────────────────────────────────
 function clearAllNames() {
@@ -1065,11 +1147,29 @@ function showToast(msg, type) {
 
 // ── Init ─────────────────────────────────────────────────────
 (function init() {
-  const saved = new URLSearchParams(location.search).get('d');
-  if (saved) {
-    try { rows = JSON.parse(decodeURIComponent(escape(atob(saved)))); render(); return; } catch(e){}
-  }
-  // Default: 2 rows of 3 tables, 6 seats each (2x3)
+  // localStorageから復元を試みる
+  try {
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data.rows && data.rows.length > 0) {
+        rows = data.rows;
+        if (data.participants) participants = data.participants;
+        if (data.banPairs) banPairs = data.banPairs;
+        render();
+        if (data.participants && data.participants.length) {
+          renderParticipants();
+          renderSeedPanel();
+          syncBanSelects();
+          renderBanList();
+        }
+        updateAutosaveIndicator(data.savedAt);
+        showToast('前回の作業を復元しました', 'success');
+        return;
+      }
+    }
+  } catch(e) {}
+  // デフォルト初期レイアウト
   document.getElementById('rowCols').value = 3;
   document.getElementById('defSeats').value = 6;
   document.getElementById('defLayout').value = '2x3';
