@@ -3,41 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>座席表ビルダー</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>NexSeat</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0f0f13;
-  --surface: #17171d;
-  --surface2: #1e1e27;
-  --surface3: #26263300;
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.14);
-  --accent: #7c6df0;
-  --accent2: #a594f9;
-  --accent-dim: rgba(124,109,240,0.15);
-  --accent-glow: rgba(124,109,240,0.3);
-  --text: #f0eeff;
-  --text2: #a09ab8;
-  --text3: #625d78;
-  --green: #4ade80;
-  --green-dim: rgba(74,222,128,0.12);
-  --red: #f87171;
-  --red-dim: rgba(248,113,113,0.12);
-  --amber: #fbbf24;
-  --amber-dim: rgba(251,191,36,0.12);
-  --radius: 10px;
-  --radius-lg: 16px;
+  --bg: #0c0c0f;
+  --surface: #131318;
+  --surface2: #1a1a22;
+  --surface3: #22222e;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --accent: #6c5ce7;
+  --accent2: #a29bfe;
+  --accent-dim: rgba(108,92,231,0.14);
+  --accent-glow: rgba(108,92,231,0.35);
+  --text: #eeecff;
+  --text2: #9994b8;
+  --text3: #4e4a68;
+  --green: #00cec9;
+  --green-dim: rgba(0,206,201,0.12);
+  --red: #ff7675;
+  --red-dim: rgba(255,118,117,0.12);
+  --amber: #fdcb6e;
+  --amber-dim: rgba(253,203,110,0.12);
+  --lock-color: #fd79a8;
+  --lock-dim: rgba(253,121,168,0.14);
+  --pin-color: #55efc4;
+  --pin-dim: rgba(85,239,196,0.14);
+  --radius: 8px;
+  --radius-lg: 14px;
+  --sidebar-w: 270px;
+  /* user-customizable */
+  --user-bg: #0c0c0f;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
   font-family: 'Noto Sans JP', sans-serif;
-  background: var(--bg);
+  background: var(--user-bg);
   color: var(--text);
   min-height: 100vh;
   font-size: 14px;
   line-height: 1.6;
+  transition: background .4s;
 }
 
 /* ── Header ── */
@@ -45,42 +53,53 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  background: rgba(19,19,24,0.92);
+  backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 100;
+  gap: 12px;
 }
 .logo {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: .04em;
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: .06em;
   color: var(--text);
+  flex-shrink: 0;
 }
-.logo-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
+.logo-mark {
+  width: 28px; height: 28px;
   background: var(--accent);
-  box-shadow: 0 0 8px var(--accent-glow);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 0 14px var(--accent-glow);
 }
-.header-actions { display: flex; gap: 8px; align-items: center; }
+.header-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 
 /* ── Buttons ── */
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
+  gap: 5px;
+  padding: 6px 13px;
   border-radius: var(--radius);
-  font-size: 12px;
-  font-weight: 500;
-  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Syne', sans-serif;
+  letter-spacing: .04em;
   cursor: pointer;
-  transition: all .15s;
+  transition: all .14s;
   border: 1px solid var(--border2);
   background: var(--surface2);
   color: var(--text2);
@@ -88,151 +107,229 @@ body {
 }
 .btn:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
 .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.btn.primary:hover { background: var(--accent2); border-color: var(--accent2); }
-.btn.danger { color: var(--red); border-color: rgba(248,113,113,0.3); }
+.btn.primary:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.btn.danger { color: var(--red); border-color: rgba(255,118,117,.3); }
 .btn.danger:hover { background: var(--red-dim); }
-.btn.sm { padding: 4px 10px; font-size: 11px; }
+.btn.success { color: var(--green); border-color: rgba(0,206,201,.3); }
+.btn.success:hover { background: var(--green-dim); }
+.btn.sm { padding: 4px 10px; font-size: 10px; }
 .btn.ghost { border-color: transparent; background: transparent; }
 .btn.ghost:hover { background: var(--surface2); border-color: var(--border); }
-.btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+.btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+.btn:disabled { opacity: .4; pointer-events: none; }
 
 /* ── Layout ── */
-.main { display: flex; height: calc(100vh - 57px); overflow: hidden; }
+.main { display: flex; height: calc(100vh - 53px); overflow: hidden; }
 .sidebar {
-  width: 280px;
+  width: var(--sidebar-w);
   flex-shrink: 0;
   background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
 }
-.content { flex: 1; overflow-y: auto; padding: 20px; }
+.content { flex: 1; overflow-y: auto; padding: 18px 20px; }
 
 /* ── Sidebar sections ── */
-.sb-section {
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-}
+.sb-section { padding: 14px 14px; border-bottom: 1px solid var(--border); }
 .sb-title {
-  font-size: 10px;
+  font-family: 'Syne', sans-serif;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: .1em;
+  letter-spacing: .12em;
   color: var(--text3);
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-.field { margin-bottom: 10px; }
-.field label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.field { margin-bottom: 9px; }
+.field label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 3px; }
 .field input[type=number],
 .field input[type=text],
 .field select {
   width: 100%;
-  padding: 7px 10px;
+  padding: 6px 9px;
   border-radius: var(--radius);
   border: 1px solid var(--border2);
   background: var(--surface2);
   color: var(--text);
-  font-family: inherit;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
 }
 .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
 .field select option { background: var(--surface2); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
-/* ── CSV Drop zone ── */
+/* ── Assign config ── */
+.assign-config {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.assign-config .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.assign-config .row:last-child { margin-bottom: 0; }
+.assign-config label { font-size: 11px; color: var(--text2); }
+.assign-config input[type=number] {
+  width: 52px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  text-align: center;
+}
+.assign-config input:focus { outline: none; border-color: var(--accent); }
+.assign-preview {
+  font-size: 10px;
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4px 0 2px;
+}
+.assign-preview span { color: var(--accent2); }
+
+/* ── Drop zone ── */
 .dropzone {
   border: 1.5px dashed var(--border2);
   border-radius: var(--radius);
-  padding: 20px 12px;
+  padding: 16px 10px;
   text-align: center;
   cursor: pointer;
-  transition: all .2s;
-  margin-bottom: 10px;
+  transition: all .18s;
+  margin-bottom: 8px;
 }
 .dropzone:hover, .dropzone.dragover {
   border-color: var(--accent);
   background: var(--accent-dim);
 }
-.dropzone-icon { font-size: 24px; margin-bottom: 6px; }
-.dropzone p { font-size: 11px; color: var(--text2); }
+.dropzone-icon { font-size: 22px; margin-bottom: 4px; }
+.dropzone p { font-size: 10px; color: var(--text2); line-height: 1.5; }
 .dropzone strong { color: var(--accent2); }
-.participant-list { max-height: 200px; overflow-y: auto; }
+
+/* ── Participant list ── */
+.participant-list { max-height: 180px; overflow-y: auto; }
 .participant-chip {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 5px 8px;
+  gap: 4px;
+  padding: 4px 7px;
   border-radius: 6px;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   background: var(--surface2);
   font-size: 11px;
   color: var(--text);
+  cursor: grab;
+  transition: background .1s;
+  user-select: none;
 }
-.participant-chip.placed { color: var(--text3); }
+.participant-chip:hover { background: var(--surface3); }
+.participant-chip.placed { color: var(--text3); cursor: default; }
 .participant-chip.placed .chip-name { text-decoration: line-through; }
-.chip-no { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; min-width: 24px; }
-.chip-drag { cursor: grab; color: var(--text3); font-size: 10px; }
-.chip-drag:active { cursor: grabbing; }
+.chip-no { font-size: 9px; color: var(--text3); font-family: 'JetBrains Mono', monospace; min-width: 20px; }
+.chip-name { flex: 1; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip-badge { font-size: 9px; padding: 1px 5px; border-radius: 4px; background: var(--accent-dim); color: var(--accent2); flex-shrink: 0; }
 
 /* ── Stats ── */
-.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .stat-card {
   background: var(--surface2);
   border-radius: var(--radius);
-  padding: 10px;
+  padding: 9px;
   border: 1px solid var(--border);
 }
-.stat-card .num { font-size: 20px; font-weight: 700; color: var(--text); font-family: 'DM Mono', monospace; }
-.stat-card .lbl { font-size: 10px; color: var(--text3); }
-.stat-card.accent { border-color: var(--accent); background: var(--accent-dim); }
+.stat-card .num { font-size: 18px; font-weight: 700; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+.stat-card .lbl { font-size: 9px; color: var(--text3); font-family: 'Syne', sans-serif; letter-spacing: .06em; }
+.stat-card.accent { border-color: rgba(108,92,231,.35); background: var(--accent-dim); }
 .stat-card.accent .num { color: var(--accent2); }
+
+/* ── BG Customizer ── */
+.bg-swatches { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.bg-swatch {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all .15s;
+}
+.bg-swatch:hover, .bg-swatch.active { border-color: var(--accent2); transform: scale(1.1); }
+.bg-custom-row { display: flex; gap: 6px; align-items: center; }
+.bg-custom-row input[type=color] {
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: none;
+  cursor: pointer;
+  padding: 2px;
+}
+.bg-custom-row input[type=text] {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+.bg-custom-row input:focus { outline: none; border-color: var(--accent); }
 
 /* ── Venue ── */
 .venue-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-.venue-title { font-size: 13px; font-weight: 500; color: var(--text2); }
+.venue-title { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; }
+.venue-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .stage-bar {
-  background: linear-gradient(90deg, var(--accent-dim), rgba(165,148,249,0.1), var(--accent-dim));
-  border: 1px solid rgba(124,109,240,0.3);
+  background: linear-gradient(90deg, transparent, var(--accent-dim), rgba(162,155,254,.12), var(--accent-dim), transparent);
+  border: 1px solid rgba(108,92,231,.25);
   border-radius: var(--radius);
-  padding: 8px 16px;
+  padding: 7px 16px;
   text-align: center;
-  font-size: 11px;
-  letter-spacing: .15em;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  letter-spacing: .18em;
   color: var(--accent2);
-  margin-bottom: 16px;
-  font-weight: 500;
+  margin-bottom: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 /* ── Row blocks ── */
 .row-block {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  transition: border-color .15s;
 }
+.row-block:hover { border-color: var(--border2); }
 .row-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 7px 12px;
   background: var(--surface2);
   border-bottom: 1px solid var(--border);
 }
 .row-label {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .1em;
+  font-weight: 500;
   color: var(--text3);
-  text-transform: uppercase;
-  font-family: 'DM Mono', monospace;
+  letter-spacing: .08em;
 }
+.row-seat-count { font-size: 10px; color: var(--text3); }
 .row-actions { display: flex; gap: 4px; margin-left: auto; }
-.row-tables { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; }
+.row-tables { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
 
 /* ── Table cards ── */
 .table-card {
@@ -240,35 +337,53 @@ body {
   border: 1px solid var(--border2);
   border-radius: var(--radius);
   padding: 10px;
-  min-width: 110px;
-  transition: border-color .15s;
+  transition: border-color .15s, box-shadow .15s;
+  position: relative;
 }
-.table-card:hover { border-color: rgba(124,109,240,0.4); }
+.table-card:hover { border-color: rgba(108,92,231,.35); }
+.table-card.locked-table { border-color: rgba(253,121,168,.35); background: rgba(253,121,168,.04); }
+.table-card.locked-table .tc-lock-icon { display: flex; }
+.tc-lock-icon {
+  display: none;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 14px; height: 14px;
+  align-items: center;
+  justify-content: center;
+  color: var(--lock-color);
+  font-size: 10px;
+}
 .tc-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
   gap: 4px;
+  margin-bottom: 8px;
 }
 .tc-name {
+  font-family: 'Syne', sans-serif;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text2);
   background: transparent;
   border: none;
   font-family: inherit;
-  width: 72px;
+  flex: 1;
+  min-width: 0;
   outline: none;
+  letter-spacing: .04em;
 }
 .tc-name:focus { color: var(--text); }
-.tc-del { color: var(--text3); cursor: pointer; font-size: 12px; padding: 2px; }
-.tc-del:hover { color: var(--red); }
+.tc-btn { color: var(--text3); cursor: pointer; font-size: 11px; padding: 2px 4px; border-radius: 4px; transition: all .1s; background: none; border: none; }
+.tc-btn:hover { background: var(--surface3); }
+.tc-btn.del:hover { color: var(--red); }
+.tc-btn.lock-btn:hover { color: var(--lock-color); }
+.tc-btn.lock-btn.active { color: var(--lock-color); }
 .seats-grid { display: grid; gap: 4px; }
 .seat {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 62px;
+  min-height: 38px;
+  border-radius: 7px;
   border: 1px solid var(--border2);
   background: var(--surface);
   display: flex;
@@ -277,37 +392,52 @@ body {
   font-size: 9px;
   cursor: pointer;
   color: var(--text3);
-  transition: all .15s;
+  transition: all .14s;
   position: relative;
-  overflow: visible;
   font-family: 'Noto Sans JP', sans-serif;
   font-weight: 500;
+  overflow: hidden;
+  line-height: 1.25;
+  text-align: center;
+  padding: 4px 5px;
+  word-break: break-all;
+  hyphens: auto;
 }
 .seat:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
+.seat.empty-seat { color: var(--text3); }
 .seat.filled {
   background: var(--accent-dim);
-  border-color: rgba(124,109,240,0.5);
+  border-color: rgba(108,92,231,.5);
   color: var(--accent2);
+  font-size: 9px;
+}
+.seat.pinned {
+  border-color: var(--pin-color) !important;
+  background: var(--pin-dim) !important;
+  color: var(--pin-color) !important;
+}
+.seat.pinned::after {
+  content: '📍';
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  font-size: 7px;
+  line-height: 1;
 }
 .seat.drop-target { border-color: var(--green); background: var(--green-dim); }
-.seat-tip {
-  position: absolute;
-  bottom: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 10px;
-  color: var(--text);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity .1s;
-  z-index: 50;
+.seat.swap-source { border-color: var(--amber); background: var(--amber-dim); animation: pulse-swap .6s ease infinite; }
+@keyframes pulse-swap { 0%,100%{box-shadow:0 0 0 0 rgba(253,203,110,.4)} 50%{box-shadow:0 0 0 4px rgba(253,203,110,.0)} }
+.seat-name {
+  display: block;
+  width: 100%;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  line-height: 1.25;
+  font-size: 9px;
+  /* scale down long names automatically */
 }
-.seat:hover .seat-tip { opacity: 1; }
+.seat-name.long { font-size: 8px; letter-spacing: -.2px; }
+
 .tc-footer {
   display: flex;
   align-items: center;
@@ -316,35 +446,37 @@ body {
   flex-wrap: wrap;
 }
 .tc-layout-sel {
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 6px;
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 5px;
   border: 1px solid var(--border2);
   background: var(--surface);
   color: var(--text2);
-  font-family: 'DM Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   cursor: pointer;
 }
 .add-table-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-width: 90px;
-  min-height: 80px;
+  gap: 4px;
+  min-width: 80px;
+  min-height: 70px;
   border: 1.5px dashed var(--border);
   border-radius: var(--radius);
   color: var(--text3);
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
-  transition: all .15s;
+  transition: all .14s;
+  font-family: 'Syne', sans-serif;
 }
 .add-table-card:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
 .add-row-area {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 0;
+  padding: 10px 0;
   border-top: 1px dashed var(--border);
   margin-top: 4px;
 }
@@ -357,47 +489,92 @@ body {
   border-radius: var(--radius-lg);
   padding: 14px;
   z-index: 300;
-  min-width: 200px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  min-width: 210px;
+  max-width: 260px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
   display: none;
 }
-.edit-popup-title { font-size: 11px; color: var(--text2); margin-bottom: 10px; }
-.edit-popup input {
+.edit-popup-title { font-family: 'Syne', sans-serif; font-size: 11px; color: var(--text2); margin-bottom: 10px; font-weight: 600; }
+.edit-popup input[type=text] {
   width: 100%;
   padding: 8px 10px;
   border-radius: var(--radius);
   border: 1px solid var(--border2);
   background: var(--surface2);
   color: var(--text);
-  font-family: inherit;
+  font-family: 'Noto Sans JP', sans-serif;
   font-size: 13px;
   margin-bottom: 8px;
 }
 .edit-popup input:focus { outline: none; border-color: var(--accent); }
-.edit-popup-btns { display: flex; gap: 6px; }
-.suggest-list { max-height: 120px; overflow-y: auto; margin-bottom: 8px; }
-.suggest-item {
-  padding: 5px 8px;
+.edit-popup-btns { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.edit-popup-opts { display: flex; gap: 5px; margin-bottom: 8px; }
+.opt-btn {
+  flex: 1;
+  padding: 5px;
   border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .12s;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+}
+.opt-btn:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
+.opt-btn.active { border-color: var(--pin-color); background: var(--pin-dim); color: var(--pin-color); }
+.suggest-list { max-height: 110px; overflow-y: auto; margin-bottom: 6px; }
+.suggest-item {
+  padding: 4px 7px;
+  border-radius: 5px;
   font-size: 11px;
   cursor: pointer;
   color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background .1s;
 }
 .suggest-item:hover { background: var(--accent-dim); color: var(--accent2); }
 
-/* ── Tabs ── */
-.tabs { display: flex; gap: 2px; margin-bottom: 16px; }
-.tab-btn {
-  padding: 7px 16px;
-  border-radius: 8px;
+/* ── Swap mode banner ── */
+.swap-banner {
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  border-radius: var(--radius-lg);
+  padding: 8px 16px;
   font-size: 12px;
-  font-weight: 500;
+  color: var(--amber);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.5);
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+}
+.swap-banner.active { display: flex; }
+
+/* ── Tabs ── */
+.tabs { display: flex; gap: 2px; margin-bottom: 14px; }
+.tab-btn {
+  padding: 6px 15px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
   border: none;
   background: transparent;
   color: var(--text3);
-  font-family: inherit;
-  transition: all .15s;
+  font-family: 'Syne', sans-serif;
+  letter-spacing: .05em;
+  transition: all .14s;
 }
 .tab-btn.active { background: var(--accent-dim); color: var(--accent2); }
 .tab-btn:hover:not(.active) { color: var(--text2); background: var(--surface2); }
@@ -408,70 +585,43 @@ body {
 .list-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .list-table th {
   text-align: left;
-  padding: 8px 12px;
-  font-size: 10px;
+  padding: 7px 10px;
+  font-family: 'Syne', sans-serif;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: .1em;
   color: var(--text3);
   text-transform: uppercase;
   border-bottom: 1px solid var(--border);
 }
 .list-table td {
-  padding: 7px 12px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
+  font-size: 12px;
 }
 .list-table tr:hover td { background: var(--surface2); }
 .badge {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 20px;
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 9px;
+  font-weight: 600;
+  font-family: 'Syne', sans-serif;
 }
 .badge.filled { background: var(--accent-dim); color: var(--accent2); }
 .badge.empty { background: var(--surface2); color: var(--text3); }
-
-/* ── Share ── */
-.share-box {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  margin-bottom: 16px;
-}
-.share-box p { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
-.share-url {
-  width: 100%;
-  padding: 9px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border2);
-  background: var(--surface);
-  color: var(--text2);
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  margin-bottom: 10px;
-}
-.share-url:focus { outline: none; }
-.output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.output-card {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-}
-.output-card h3 { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
-.output-card p { font-size: 11px; color: var(--text2); margin-bottom: 10px; }
+.badge.pin { background: var(--pin-dim); color: var(--pin-color); }
 
 /* ── Toast ── */
 .toast {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 20px;
+  right: 20px;
   background: var(--surface);
   border: 1px solid var(--border2);
   border-radius: var(--radius);
-  padding: 10px 16px;
+  padding: 9px 14px;
   font-size: 12px;
   color: var(--text);
   z-index: 999;
@@ -479,22 +629,35 @@ body {
   transform: translateY(8px);
   transition: all .2s;
   pointer-events: none;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
 }
 .toast.show { opacity: 1; transform: translateY(0); }
-.toast.success { border-color: rgba(74,222,128,0.4); color: var(--green); }
+.toast.success { border-color: rgba(0,206,201,.4); color: var(--green); }
+.toast.error { border-color: rgba(255,118,117,.4); color: var(--red); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
 
 /* ── Print ── */
 @media print {
-  body { background: #fff; color: #000; }
-  .header, .sidebar, .add-row-area, .row-actions, .tc-footer, .venue-header { display: none !important; }
-  .main { display: block; }
-  .content { padding: 0; overflow: visible; }
-  .row-block { border: 1px solid #ddd; break-inside: avoid; }
+  body { background: #fff !important; color: #000; }
+  .header, .sidebar, .add-row-area, .row-actions, .tc-footer, .venue-header, .tc-btn, .tc-lock-icon, .swap-banner, .tabs, #tab-list { display: none !important; }
+  .main { display: block; height: auto; overflow: visible; }
+  .content { padding: 0; overflow: visible; height: auto; }
+  .row-block { border: 1px solid #ddd; break-inside: avoid; margin-bottom: 8px; }
   .row-header { background: #f5f5f5; }
-  .table-card { background: #fafafa; border: 1px solid #ddd; }
-  .seat { border: 1px solid #aaa; background: #f0f0f0; color: #333; }
-  .seat.filled { background: #e8e4ff; border-color: #9b8eff; color: #3d2fb3; }
-  .stage-bar { background: #f0ecff; color: #534AB7; border-color: #9b8eff; }
+  .table-card { background: #fafafa; border: 1px solid #ddd; break-inside: avoid; }
+  .seat { border: 1px solid #aaa; background: #f0f0f0; color: #333; font-size: 8px; border-radius: 5px; }
+  .seat.filled { background: #ede8ff; border-color: #9b8eff; color: #3d2fb3; }
+  .seat.pinned { border-color: #00b894 !important; background: #d4fff6 !important; color: #00b894 !important; }
+  .seat.pinned::after { display: none; }
+  .seat-name { font-size: 8px; word-break: break-all; }
+  .seat-name.long { font-size: 7px; }
+  .stage-bar { background: #f0ecff; color: #534AB7; border-color: #9b8eff; print-color-adjust: exact; }
+  #tab-layout { display: block !important; }
 }
 </style>
 </head>
@@ -502,28 +665,32 @@ body {
 
 <div class="header">
   <div class="logo">
-    <div class="logo-dot"></div>
-    座席表ビルダー
+    <div class="logo-mark">N</div>
+    NexSeat
   </div>
   <div class="header-actions">
-    <div id="autosave-indicator" style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;padding:0 4px">
-      <span id="autosave-dot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block"></span>
-      <span id="autosave-label">—</span>
-    </div>
+    <div id="autosave-label" style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">—</div>
+    <button class="btn sm success" onclick="startSwapMode()" id="swapBtn" title="入れ替えモード">
+      ⇄ 入れ替え
+    </button>
     <button class="btn sm" onclick="exportCSV()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      座席表CSV保存
+      ↓ CSV保存
     </button>
     <button class="btn sm" onclick="document.getElementById('restoreCsvIn').click()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      CSV復元
+      ↺ CSV復元
     </button>
     <input type="file" id="restoreCsvIn" accept=".csv" style="display:none" onchange="restoreFromCSV(event)">
     <button class="btn sm primary" onclick="window.print()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      印刷・PDF
+      ⊞ 印刷
     </button>
   </div>
+</div>
+
+<!-- Swap mode banner -->
+<div class="swap-banner" id="swapBanner">
+  <span>⇄ 入れ替えモード</span>
+  <span id="swapStatus" style="font-weight:400;font-family:'Noto Sans JP',sans-serif;font-size:11px;">1人目の席をクリック</span>
+  <button class="btn sm danger" onclick="cancelSwap()">キャンセル</button>
 </div>
 
 <div class="main">
@@ -533,61 +700,103 @@ body {
       <div class="sb-title">参加者インポート</div>
       <div class="dropzone" id="dropzone" onclick="document.getElementById('csvInput').click()">
         <div class="dropzone-icon">📂</div>
-        <p><strong>TonemelのCSVをドロップ</strong><br>またはクリックして選択</p>
+        <p><strong>Tonemel / start.gg CSVをドロップ</strong><br>またはクリックして選択</p>
       </div>
       <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleCSV(event)">
       <div id="participantArea" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span id="participantCount" style="font-size:11px;color:var(--text2)"></span>
-          <button class="btn sm" onclick="autoAssign()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-            自動割り当て
-          </button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span id="participantCount" style="font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace"></span>
         </div>
         <div class="participant-list" id="participantList"></div>
       </div>
     </div>
 
-    <!-- Row settings -->
+    <!-- Auto-assign config -->
     <div class="sb-section">
-      <div class="sb-title">列を追加</div>
-      <div class="field">
-        <label>卓数（横に何卓）</label>
-        <input type="number" id="rowCols" min="1" max="10" value="3">
+      <div class="sb-title">自動割り当て設定</div>
+      <div class="assign-config">
+        <div class="row">
+          <label>席数 / 卓</label>
+          <input type="number" id="seatsPerTable" min="1" max="20" value="6">
+        </div>
+        <div class="row">
+          <label>卓数 / 列</label>
+          <input type="number" id="tablesPerRow" min="1" max="12" value="4">
+        </div>
+        <div class="row">
+          <label>最大列数</label>
+          <input type="number" id="maxRows" min="1" max="30" value="10">
+        </div>
       </div>
-      <div class="field">
-        <label>席数/卓</label>
-        <input type="number" id="defSeats" min="1" max="12" value="6">
-      </div>
-      <div class="field">
-        <label>席の並び</label>
+      <div class="assign-preview" id="assignPreview">—</div>
+      <div class="field" style="margin-top:8px">
+        <label>席の並びレイアウト</label>
         <select id="defLayout">
-          <option value="2x3">2列 × 3行</option>
-          <option value="3x2">3列 × 2行</option>
-          <option value="1x6">1列 × 6行</option>
-          <option value="6x1">6列 × 1行</option>
-          <option value="2x2">2列 × 2行（4席）</option>
-          <option value="4x1">4列 × 1行（4席）</option>
-          <option value="3x3">3列 × 3行（9席）</option>
-          <option value="2x4">2列 × 4行（8席）</option>
-          <option value="4x2">4列 × 2行（8席）</option>
+          <option value="2x3">2×3（6席）</option>
+          <option value="3x2">3×2（6席）</option>
+          <option value="2x4">2×4（8席）</option>
+          <option value="4x2">4×2（8席）</option>
+          <option value="1x6">1×6（縦並び）</option>
+          <option value="6x1">6×1（横並び）</option>
+          <option value="2x2">2×2（4席）</option>
+          <option value="4x1">4×1（4席）</option>
+          <option value="3x3">3×3（9席）</option>
         </select>
       </div>
-      <button class="btn primary" style="width:100%" onclick="addRow()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        列を追加
-      </button>
+      <div style="display:flex;gap:6px;margin-top:4px">
+        <button class="btn primary" style="flex:1" onclick="autoAssign()">
+          ⚡ 自動割り当て
+        </button>
+        <button class="btn success" style="flex:1" onclick="reshuffleAssign()">
+          🔀 再シャッフル
+        </button>
+      </div>
     </div>
 
     <!-- Stats -->
     <div class="sb-section">
       <div class="sb-title">サマリー</div>
       <div class="stats" id="statsArea">
-        <div class="stat-card"><div class="num">0</div><div class="lbl">列</div></div>
-        <div class="stat-card"><div class="num">0</div><div class="lbl">卓</div></div>
-        <div class="stat-card accent"><div class="num">0</div><div class="lbl">着席済み</div></div>
-        <div class="stat-card"><div class="num">0</div><div class="lbl">空席</div></div>
+        <div class="stat-card"><div class="num">0</div><div class="lbl">ROWS</div></div>
+        <div class="stat-card"><div class="num">0</div><div class="lbl">TABLES</div></div>
+        <div class="stat-card accent"><div class="num">0</div><div class="lbl">SEATED</div></div>
+        <div class="stat-card"><div class="num">0</div><div class="lbl">OPEN</div></div>
       </div>
+    </div>
+
+    <!-- Background customizer -->
+    <div class="sb-section">
+      <div class="sb-title">背景カスタム</div>
+      <div class="bg-swatches" id="bgSwatches">
+        <div class="bg-swatch active" style="background:#0c0c0f" data-color="#0c0c0f" onclick="setBg(this)"></div>
+        <div class="bg-swatch" style="background:#0d1117" data-color="#0d1117" onclick="setBg(this)"></div>
+        <div class="bg-swatch" style="background:#1a0a2e" data-color="#1a0a2e" onclick="setBg(this)"></div>
+        <div class="bg-swatch" style="background:#0a1628" data-color="#0a1628" onclick="setBg(this)"></div>
+        <div class="bg-swatch" style="background:#0f1a0f" data-color="#0f1a0f" onclick="setBg(this)"></div>
+        <div class="bg-swatch" style="background:#1a0f0f" data-color="#1a0f0f" onclick="setBg(this)"></div>
+        <div class="bg-swatch" style="background:#f5f4ef" data-color="#f5f4ef" onclick="setBg(this)"></div>
+        <div class="bg-swatch" style="background:#ffffff" data-color="#ffffff" onclick="setBg(this)"></div>
+      </div>
+      <div class="bg-custom-row">
+        <input type="color" id="bgColorPicker" value="#0c0c0f" oninput="setBgFromPicker(this.value)">
+        <input type="text" id="bgColorText" value="#0c0c0f" placeholder="#000000" onchange="setBgFromText(this.value)">
+      </div>
+    </div>
+
+    <!-- Add row manually -->
+    <div class="sb-section">
+      <div class="sb-title">手動で列を追加</div>
+      <div class="field-row">
+        <div class="field">
+          <label>卓数</label>
+          <input type="number" id="manualCols" min="1" max="12" value="4">
+        </div>
+        <div class="field">
+          <label>席数/卓</label>
+          <input type="number" id="manualSeats" min="1" max="20" value="6">
+        </div>
+      </div>
+      <button class="btn" style="width:100%" onclick="addRowManual()">+ 列を追加</button>
     </div>
   </div>
 
@@ -599,19 +808,16 @@ body {
 
     <div id="tab-layout" class="tab-panel active">
       <div class="venue-header">
-        <span class="venue-title">会場レイアウト</span>
-        <div style="display:flex;gap:6px">
+        <span class="venue-title">Venue Layout</span>
+        <div class="venue-actions">
           <button class="btn sm ghost" onclick="clearAllNames()">名前をクリア</button>
         </div>
       </div>
-      <div class="stage-bar">▲ ステージ / 司会席</div>
+      <div class="stage-bar">▲ STAGE / HOST</div>
       <div id="venueRows"></div>
       <div class="add-row-area">
-        <button class="btn ghost" onclick="addRow()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          列を追加
-        </button>
-        <span style="font-size:11px;color:var(--text3)">卓名・席をクリックして名前を入力 / ドラッグで入れ替え</span>
+        <button class="btn ghost" onclick="addRowManual()">+ 列を追加</button>
+        <span style="font-size:10px;color:var(--text3);font-family:'Syne',sans-serif">席をクリック→編集・固定 / 入れ替えモードで2席クリック</span>
       </div>
     </div>
 
@@ -623,13 +829,16 @@ body {
 
 <!-- Edit popup -->
 <div class="edit-popup" id="editPopup">
-  <div class="edit-popup-title" id="editPopupTitle">席の名前</div>
-  <input type="text" id="editInput" placeholder="名前を入力（空欄で削除）" maxlength="12" autocomplete="off">
+  <div class="edit-popup-title" id="editPopupTitle">席を編集</div>
+  <input type="text" id="editInput" placeholder="名前を入力" maxlength="20" autocomplete="off">
+  <div class="edit-popup-opts">
+    <div class="opt-btn" id="pinBtn" onclick="togglePinSeat()">📍 固定</div>
+  </div>
   <div class="suggest-list" id="suggestList"></div>
   <div class="edit-popup-btns">
     <button class="btn sm primary" onclick="confirmEdit()">確定</button>
     <button class="btn sm danger" onclick="clearSeat()">空にする</button>
-    <button class="btn sm ghost" onclick="closeEdit()">キャンセル</button>
+    <button class="btn sm ghost" onclick="closeEdit()">✕</button>
   </div>
 </div>
 
@@ -639,10 +848,13 @@ body {
 // ── State ──────────────────────────────────────────────────
 let rows = [];
 let participants = [];
-let banPairs = [];
+let pinnedSeats = {}; // key: "rowId_tableId_seatIdx" => true
+let lockedTables = {}; // key: tableId => true
 let editTarget = null;
 let dragParticipant = null;
-const LS_KEY = 'nexseat_autosave';
+let swapMode = false;
+let swapSource = null; // {rowId, tableId, seatIdx}
+const LS_KEY = 'nexseat_v2_autosave';
 let autosaveTimer = null;
 
 const LAYOUTS = {
@@ -652,13 +864,59 @@ const LAYOUTS = {
   '3x3':{c:3,r:3},'2x4':{c:2,r:4},'4x2':{c:4,r:2},
 };
 
-// ── CSV Parse ──────────────────────────────────────────────
+// ── Preview ────────────────────────────────────────────────
+function updatePreview() {
+  const s = parseInt(document.getElementById('seatsPerTable').value) || 6;
+  const t = parseInt(document.getElementById('tablesPerRow').value) || 4;
+  const maxR = parseInt(document.getElementById('maxRows').value) || 10;
+  const n = participants.filter(p => !p.placed).length || 0;
+  if (n === 0) {
+    document.getElementById('assignPreview').innerHTML = `<span>${s}席 × ${t}卓 × ?列</span>`;
+    return;
+  }
+  const totalSeats = s * t;
+  const neededRows = Math.ceil(n / totalSeats);
+  const actualRows = Math.min(neededRows, maxR);
+  document.getElementById('assignPreview').innerHTML =
+    `${n}人 → <span>${actualRows}列 × ${t}卓 × ${s}席</span>`;
+}
+['seatsPerTable','tablesPerRow','maxRows'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePreview);
+});
+
+// ── CSV Parse (Tonemel + start.gg) ────────────────────────
+function detectFormat(headers) {
+  // Tonemel: has エントリー名 or ステータス
+  if (headers.some(h => h.includes('エントリー名') || h.includes('ステータス'))) return 'tonemel';
+  // start.gg: has Name, Gamertag, etc.
+  if (headers.some(h => h.toLowerCase().includes('name') || h.toLowerCase().includes('gamertag') || h.toLowerCase().includes('participant'))) return 'startgg';
+  return 'unknown';
+}
+
 function handleCSV(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => parseCSV(ev.target.result);
+  reader.onload = ev => {
+    let text = ev.target.result;
+    // Try UTF-8 first; if garbled (start.gg raw UTF-16), re-read as UTF-16
+    if (isGarbled(text)) {
+      const r2 = new FileReader();
+      r2.onload = ev2 => parseCSVAuto(ev2.target.result);
+      r2.readAsText(file, 'UTF-16LE');
+    } else {
+      parseCSVAuto(text);
+    }
+  };
   reader.readAsText(file, 'UTF-8');
+  e.target.value = '';
+}
+
+function isGarbled(text) {
+  // Heuristic: lots of replacement chars or very few recognizable Japanese chars in first 500 chars
+  const sample = text.slice(0, 500);
+  const repCount = (sample.match(/\uFFFD/g) || []).length;
+  return repCount > 5;
 }
 
 const dz = document.getElementById('dropzone');
@@ -668,41 +926,82 @@ dz.addEventListener('drop', e => {
   e.preventDefault();
   dz.classList.remove('dragover');
   const file = e.dataTransfer.files[0];
-  if (file) { const r = new FileReader(); r.onload = ev => parseCSV(ev.target.result); r.readAsText(file, 'UTF-8'); }
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    let text = ev.target.result;
+    if (isGarbled(text)) {
+      const r2 = new FileReader();
+      r2.onload = ev2 => parseCSVAuto(ev2.target.result);
+      r2.readAsText(file, 'UTF-16LE');
+    } else {
+      parseCSVAuto(text);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
 });
 
-function parseCSV(text) {
-  // Remove BOM
-  text = text.replace(/^\uFEFF/, '');
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+function parseCSVAuto(text) {
+  text = text.replace(/^\uFEFF/, '').replace(/^\xFF\xFE/, '');
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  if (lines.length < 2) { showToast('CSVが読み込めませんでした', 'error'); return; }
   const headers = splitCSVLine(lines[0]);
+  const fmt = detectFormat(headers);
+  let out = [];
+  if (fmt === 'tonemel') out = parseTonemel(headers, lines);
+  else out = parseStartGG(headers, lines);
 
-  // Find column indices
-  const idxEntryName = headers.indexOf('エントリー名');
+  participants = out;
+  updatePreview();
+  renderParticipants();
+  showToast(`${out.length}人を読み込みました (${fmt === 'tonemel' ? 'Tonemel' : 'start.gg'})`, 'success');
+}
+
+function parseTonemel(headers, lines) {
   const idxStatus = headers.indexOf('ステータス');
-  const idxType = headers.indexOf('エントリー種別');
-
   const out = [];
   for (let i = 1; i < lines.length; i++) {
     const cols = splitCSVLine(lines[i]);
     const status = cols[idxStatus] || '';
-    const type = cols[idxType] || '';
     if (status !== '出場') continue;
-    // エントリー名は列3(index 2)が基本、複数ある場合は最初の非空
     let name = '';
     for (let j = 2; j < Math.min(cols.length, 15); j++) {
       const v = cols[j].trim();
-      if (v && v !== 'はい、使用可能です' && v !== 'いいえ、参加していません！' && v !== 'はい、参加しました！' && v !== 'いいえ、複数回目の参加です' && v !== 'はい、初参加です' && !v.startsWith('@') && !v.match(/^\d{4}-/)) {
+      if (v && !v.includes('はい') && !v.includes('いいえ') && !v.startsWith('@') && !v.match(/^\d{4}-/) && v.length > 0) {
         name = v; break;
       }
     }
     if (!name) name = cols[2] || cols[1] || '不明';
-    out.push({ name: name.trim(), type, placed: false });
+    out.push({ name: name.trim(), placed: false });
   }
+  return out;
+}
 
-  participants = out;
-  renderParticipants();
-  showToast(`${out.length}人の出場者を読み込みました`, 'success');
+function parseStartGG(headers, lines) {
+  // start.gg exports: Participant Id, Name, Gamertag, Prefix, etc.
+  const lh = headers.map(h => h.toLowerCase());
+  // Priority: Gamertag > Name > Participant Name
+  let nameIdx = lh.findIndex(h => h.includes('gamertag'));
+  if (nameIdx < 0) nameIdx = lh.findIndex(h => h === 'name' || h.includes('participant name'));
+  if (nameIdx < 0) nameIdx = lh.findIndex(h => h.includes('name'));
+  if (nameIdx < 0) nameIdx = 1;
+  const statusIdx = lh.findIndex(h => h.includes('status') || h.includes('checked'));
+  const out = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = splitCSVLine(lines[i]);
+    if (!cols.length || !cols[nameIdx]) continue;
+    // If there's a status column, try to filter checked-in only; otherwise take all
+    if (statusIdx >= 0) {
+      const s = (cols[statusIdx] || '').toLowerCase();
+      if (s && !s.includes('check') && !s.includes('attend') && !s.includes('true') && !s.includes('1') && !s.includes('yes') && s !== '') {
+        // skip clearly non-active entries only if column exists and has meaningful values
+      }
+    }
+    const name = cols[nameIdx].trim();
+    if (!name) continue;
+    out.push({ name, placed: false });
+  }
+  return out;
 }
 
 function splitCSVLine(line) {
@@ -712,13 +1011,14 @@ function splitCSVLine(line) {
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (ch === '"') { inQ = !inQ; }
-    else if (ch === ',' && !inQ) { result.push(cur); cur = ''; }
+    else if (ch === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
     else { cur += ch; }
   }
-  result.push(cur);
+  result.push(cur.trim());
   return result;
 }
 
+// ── Participants render ──────────────────────────────────────
 function renderParticipants() {
   const area = document.getElementById('participantArea');
   const list = document.getElementById('participantList');
@@ -726,21 +1026,38 @@ function renderParticipants() {
   area.style.display = 'block';
   const placed = getAllPlacedNames();
   participants.forEach(p => { p.placed = placed.includes(p.name); });
-  count.textContent = `${participants.filter(p=>!p.placed).length} / ${participants.length} 人未配置`;
+  const unplaced = participants.filter(p => !p.placed).length;
+  count.textContent = `${unplaced}未配置 / ${participants.length}人`;
   list.innerHTML = '';
   participants.forEach((p, i) => {
     const div = document.createElement('div');
     div.className = 'participant-chip' + (p.placed ? ' placed' : '');
     div.draggable = !p.placed;
-    div.innerHTML = `<span class="chip-no">${i+1}</span><span class="chip-name">${p.name}</span><span class="chip-drag">${p.placed ? '✓' : '⠿'}</span>`;
+    const no = document.createElement('span');
+    no.className = 'chip-no';
+    no.textContent = i + 1;
+    const nm = document.createElement('span');
+    nm.className = 'chip-name';
+    nm.textContent = p.name;
+    nm.title = p.name;
+    div.appendChild(no);
+    div.appendChild(nm);
+    if (p.placed) {
+      const badge = document.createElement('span');
+      badge.className = 'chip-badge';
+      badge.textContent = '✓';
+      div.appendChild(badge);
+    }
     if (!p.placed) {
       div.addEventListener('dragstart', e => {
         dragParticipant = p.name;
         e.dataTransfer.effectAllowed = 'copy';
       });
+      div.addEventListener('dragend', () => { dragParticipant = null; });
     }
     list.appendChild(div);
   });
+  updatePreview();
 }
 
 function getAllPlacedNames() {
@@ -749,47 +1066,128 @@ function getAllPlacedNames() {
   return names;
 }
 
-// ── Auto-assign ─────────────────────────────────────────────
+// ── Auto-assign ──────────────────────────────────────────────
 function autoAssign() {
-  const unplaced = participants.filter(p => !p.placed).map(p => p.name);
-  let idx = 0;
-  rows.forEach(r => r.tables.forEach(t => {
-    t.seats = t.seats.map(s => {
-      if (!s && idx < unplaced.length) return unplaced[idx++];
-      return s;
-    });
-  }));
-  render();
-  showToast(`${idx}人を自動割り当てしました`, 'success');
-}
-
-// ── Rows & Tables ───────────────────────────────────────────
-function totalTables() { return rows.reduce((a, r) => a + r.tables.length, 0); }
-
-function makeSeats(n) { return Array.from({length: n}, () => ''); }
-
-function getLayoutSeats(key) {
-  const cfg = LAYOUTS[key] || {c:2, r:3};
-  return cfg.c * cfg.r;
-}
-
-function addRow() {
-  const cols = parseInt(document.getElementById('rowCols').value) || 3;
-  const seats = parseInt(document.getElementById('defSeats').value) || 6;
+  const s = parseInt(document.getElementById('seatsPerTable').value) || 6;
+  const t = parseInt(document.getElementById('tablesPerRow').value) || 4;
+  const maxR = parseInt(document.getElementById('maxRows').value) || 10;
   const layout = document.getElementById('defLayout').value;
-  const seatCount = getLayoutSeats(layout);
-  const id = Date.now();
+
+  const unplaced = participants.filter(p => !p.placed).map(p => p.name);
+  if (unplaced.length === 0) { showToast('配置できる参加者がいません', 'error'); return; }
+
+  // Build needed rows
+  const neededRows = Math.min(Math.ceil(unplaced.length / (s * t)), maxR);
+  // Clear existing non-pinned seats first? No – append to empty seats, respect pins
+  // First, fill existing empty non-locked seats
+  let idx = 0;
+  rows.forEach(row => {
+    row.tables.forEach(table => {
+      if (lockedTables[table.id]) return;
+      table.seats = table.seats.map((seat, si) => {
+        const pk = pinKey(row.id, table.id, si);
+        if (pinnedSeats[pk]) return seat; // keep pinned
+        if (!seat && idx < unplaced.length) return unplaced[idx++];
+        return seat;
+      });
+    });
+  });
+
+  // Add new rows if needed
+  while (idx < unplaced.length && rows.length < rows.length + neededRows) {
+    const newRow = buildRow(t, s, layout);
+    rows.push(newRow);
+    newRow.tables.forEach(table => {
+      table.seats = table.seats.map((_, si) => {
+        if (idx < unplaced.length) return unplaced[idx++];
+        return '';
+      });
+    });
+  }
+  // If still have unplaced, add more rows
+  let safety = 0;
+  while (idx < unplaced.length && safety++ < 50) {
+    const newRow = buildRow(t, s, layout);
+    rows.push(newRow);
+    newRow.tables.forEach(table => {
+      table.seats = table.seats.map((_, si) => {
+        if (idx < unplaced.length) return unplaced[idx++];
+        return '';
+      });
+    });
+  }
+
+  render();
+  showToast(`${Math.min(idx, unplaced.length)}人を割り当てました`, 'success');
+}
+
+function reshuffleAssign() {
+  // Collect all non-pinned, non-locked names from existing seats
+  const names = [];
+  rows.forEach(row => {
+    row.tables.forEach(table => {
+      if (lockedTables[table.id]) return;
+      table.seats.forEach((seat, si) => {
+        const pk = pinKey(row.id, table.id, si);
+        if (!pinnedSeats[pk] && seat) names.push(seat);
+      });
+    });
+  });
+  // Shuffle
+  for (let i = names.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [names[i], names[j]] = [names[j], names[i]];
+  }
+  // Re-assign into same seats
+  let idx = 0;
+  rows.forEach(row => {
+    row.tables.forEach(table => {
+      if (lockedTables[table.id]) return;
+      table.seats = table.seats.map((seat, si) => {
+        const pk = pinKey(row.id, table.id, si);
+        if (pinnedSeats[pk]) return seat;
+        if (seat) return names[idx++] || '';
+        return '';
+      });
+    });
+  });
+  render();
+  showToast('再シャッフルしました 🔀', 'success');
+}
+
+function buildRow(cols, seatsPerTable, layout) {
+  const cfg = LAYOUTS[layout] || {c:2,r:3};
+  const seatCount = cfg.c * cfg.r;
+  const id = Date.now() + Math.random();
   const tables = Array.from({length: cols}, (_, i) => ({
     id: id + '_' + i,
     name: `卓${totalTables() + i + 1}`,
-    seats: makeSeats(seatCount || seats),
+    seats: Array.from({length: seatCount}, () => ''),
     layout,
   }));
-  rows.push({id, tables});
+  return {id, tables};
+}
+
+function totalTables() { return rows.reduce((a, r) => a + r.tables.length, 0); }
+
+// ── Pin key helper ────────────────────────────────────────────
+function pinKey(rowId, tableId, seatIdx) { return `${rowId}__${tableId}__${seatIdx}`; }
+
+// ── Add row manually ─────────────────────────────────────────
+function addRowManual() {
+  const cols = parseInt(document.getElementById('manualCols').value) || 4;
+  const seats = parseInt(document.getElementById('manualSeats').value) || 6;
+  const layout = document.getElementById('defLayout').value;
+  const cfg = LAYOUTS[layout] || {c:2,r:3};
+  const seatCount = cfg.c * cfg.r;
+  const row = buildRow(cols, seatCount, layout);
+  // override seat count with manual
+  row.tables.forEach(t => { t.seats = Array.from({length: seats}, () => ''); });
+  rows.push(row);
   render();
 }
 
-// ── Render ──────────────────────────────────────────────────
+// ── Render ───────────────────────────────────────────────────
 function render() {
   const container = document.getElementById('venueRows');
   container.innerHTML = '';
@@ -797,42 +1195,37 @@ function render() {
     const block = document.createElement('div');
     block.className = 'row-block';
 
-    // Header
     const hdr = document.createElement('div');
     hdr.className = 'row-header';
-    hdr.innerHTML = `<span class="row-label">ROW ${ri + 1}</span><span style="font-size:11px;color:var(--text3)">${row.tables.length}卓</span>`;
+    const lbl = document.createElement('span');
+    lbl.className = 'row-label';
+    lbl.textContent = `ROW ${ri + 1}`;
+    const sc = document.createElement('span');
+    sc.className = 'row-seat-count';
+    const filled = row.tables.reduce((a,t)=>a+t.seats.filter(s=>s).length,0);
+    const total = row.tables.reduce((a,t)=>a+t.seats.length,0);
+    sc.textContent = `${row.tables.length}卓 · ${filled}/${total}`;
     const acts = document.createElement('div');
     acts.className = 'row-actions';
     const addT = mkBtn('+ 卓', 'sm ghost', () => {
-      const seats = parseInt(document.getElementById('defSeats').value) || 6;
+      const seats = parseInt(document.getElementById('manualSeats').value) || 6;
       const layout = document.getElementById('defLayout').value;
-      const sc = getLayoutSeats(layout);
-      row.tables.push({id: Date.now(), name: `卓${totalTables()+1}`, seats: makeSeats(sc||seats), layout});
+      const cfg = LAYOUTS[layout] || {c:2,r:3};
+      row.tables.push({id: Date.now()+'_'+Math.random(), name:`卓${totalTables()+1}`, seats: Array.from({length:seats},()=>''), layout});
       render();
     });
     const delRow = mkBtn('列を削除', 'sm danger', () => { rows = rows.filter(r => r.id !== row.id); render(); });
     acts.appendChild(addT);
     acts.appendChild(delRow);
+    hdr.appendChild(lbl);
+    hdr.appendChild(sc);
     hdr.appendChild(acts);
     block.appendChild(hdr);
 
-    // Tables
     const tablesDiv = document.createElement('div');
     tablesDiv.className = 'row-tables';
     row.tables.forEach(t => tablesDiv.appendChild(makeTableCard(t, row)));
 
-    // Add table placeholder
-    const addCard = document.createElement('div');
-    addCard.className = 'add-table-card';
-    addCard.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>卓追加';
-    addCard.onclick = () => {
-      const seats = parseInt(document.getElementById('defSeats').value) || 6;
-      const layout = document.getElementById('defLayout').value;
-      const sc = getLayoutSeats(layout);
-      row.tables.push({id: Date.now(), name: `卓${totalTables()+1}`, seats: makeSeats(sc||seats), layout});
-      render();
-    };
-    tablesDiv.appendChild(addCard);
     block.appendChild(tablesDiv);
     container.appendChild(block);
   });
@@ -844,53 +1237,100 @@ function render() {
 
 function makeTableCard(t, row) {
   const card = document.createElement('div');
-  card.className = 'table-card';
+  card.className = 'table-card' + (lockedTables[t.id] ? ' locked-table' : '');
 
-  // Head
+  // Lock icon (display only)
+  const lockIcon = document.createElement('div');
+  lockIcon.className = 'tc-lock-icon';
+  lockIcon.textContent = '🔒';
+  card.appendChild(lockIcon);
+
   const head = document.createElement('div');
   head.className = 'tc-head';
+
   const nameInp = document.createElement('input');
   nameInp.className = 'tc-name';
   nameInp.value = t.name;
-  nameInp.onchange = e => { t.name = e.target.value; updateListView(); updateShareUrl(); };
-  const delBtn = document.createElement('span');
-  delBtn.className = 'tc-del';
-  delBtn.innerHTML = '×';
+  nameInp.title = t.name;
+  nameInp.onchange = e => { t.name = e.target.value; updateListView(); };
+
+  // Lock table button
+  const lockBtn = document.createElement('button');
+  lockBtn.className = 'tc-btn lock-btn' + (lockedTables[t.id] ? ' active' : '');
+  lockBtn.title = lockedTables[t.id] ? 'ロック解除' : '卓をロック';
+  lockBtn.textContent = lockedTables[t.id] ? '🔒' : '🔓';
+  lockBtn.onclick = () => {
+    lockedTables[t.id] = !lockedTables[t.id];
+    render();
+  };
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'tc-btn del';
+  delBtn.textContent = '×';
   delBtn.title = '卓を削除';
   delBtn.onclick = () => { row.tables = row.tables.filter(x => x.id !== t.id); render(); };
+
   head.appendChild(nameInp);
+  head.appendChild(lockBtn);
   head.appendChild(delBtn);
   card.appendChild(head);
 
-  // Seats
-  const cfg = LAYOUTS[t.layout] || {c:2, r:3};
+  // Seats grid
+  const cfg = LAYOUTS[t.layout] || {c:2,r:3};
   const sg = document.createElement('div');
   sg.className = 'seats-grid';
-  sg.style.gridTemplateColumns = `repeat(${cfg.c}, 30px)`;
+  sg.style.gridTemplateColumns = `repeat(${cfg.c}, 62px)`;
 
   t.seats.forEach((name, si) => {
+    const pk = pinKey(row.id, t.id, si);
+    const isPinned = !!pinnedSeats[pk];
     const seat = document.createElement('div');
-    seat.className = 'seat' + (name ? ' filled' : '');
-    if (name) {
-      seat.textContent = name.length > 4 ? name.slice(0,3)+'…' : name;
-      seat.innerHTML += `<div class="seat-tip">${name}</div>`;
-    } else {
-      seat.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-    }
-    seat.onclick = e => { e.stopPropagation(); openEdit(e, t, si); };
+    let cls = 'seat';
+    if (name) cls += ' filled';
+    else cls += ' empty-seat';
+    if (isPinned) cls += ' pinned';
+    seat.className = cls;
 
-    // Drop target for drag-from-list
+    if (name) {
+      // Show full name — wrap naturally, shrink font for long names
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'seat-name' + (name.length > 8 ? ' long' : '');
+      nameSpan.textContent = name;
+      seat.appendChild(nameSpan);
+    } else {
+      seat.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:10px;height:10px;opacity:.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+    }
+
+    seat.onclick = e => {
+      e.stopPropagation();
+      if (swapMode) {
+        handleSwapClick(row.id, t.id, si, name);
+        return;
+      }
+      openEdit(e, t, si, row.id);
+    };
+
+    // Swap highlight
+    if (swapMode && swapSource && swapSource.tableId === t.id && swapSource.seatIdx === si) {
+      seat.classList.add('swap-source');
+    }
+
+    // Drag from participant list
     seat.addEventListener('dragover', e => { e.preventDefault(); seat.classList.add('drop-target'); });
     seat.addEventListener('dragleave', () => seat.classList.remove('drop-target'));
     seat.addEventListener('drop', e => {
       e.preventDefault();
       seat.classList.remove('drop-target');
-      if (dragParticipant) {
-        t.seats[si] = dragParticipant;
-        dragParticipant = null;
-        render();
+      if (dragParticipant && !lockedTables[t.id]) {
+        const pk2 = pinKey(row.id, t.id, si);
+        if (!pinnedSeats[pk2]) {
+          t.seats[si] = dragParticipant;
+          dragParticipant = null;
+          render();
+        }
       }
     });
+
     sg.appendChild(seat);
   });
   card.appendChild(sg);
@@ -907,14 +1347,15 @@ function makeTableCard(t, row) {
     sel.appendChild(o);
   });
   sel.onchange = e => {
+    if (lockedTables[t.id]) return;
     t.layout = e.target.value;
-    const n = getLayoutSeats(t.layout);
+    const n = LAYOUTS[t.layout].c * LAYOUTS[t.layout].r;
     while (t.seats.length < n) t.seats.push('');
     if (t.seats.length > n) t.seats = t.seats.slice(0, n);
     render();
   };
-  const addS = mkBtn('+席', 'sm ghost', () => { t.seats.push(''); render(); });
-  const delS = mkBtn('-席', 'sm ghost', () => { if (t.seats.length > 1) { t.seats.pop(); render(); } });
+  const addS = mkBtn('+席', 'sm ghost', () => { if (!lockedTables[t.id]) { t.seats.push(''); render(); } });
+  const delS = mkBtn('-席', 'sm ghost', () => { if (!lockedTables[t.id] && t.seats.length > 1) { t.seats.pop(); render(); } });
   foot.appendChild(sel);
   foot.appendChild(addS);
   foot.appendChild(delS);
@@ -930,37 +1371,94 @@ function mkBtn(text, cls, fn) {
   return b;
 }
 
-// ── Edit popup ──────────────────────────────────────────────
-function openEdit(e, t, si) {
-  editTarget = {t, si};
+// ── Swap mode ────────────────────────────────────────────────
+function startSwapMode() {
+  swapMode = true;
+  swapSource = null;
+  document.getElementById('swapBanner').classList.add('active');
+  document.getElementById('swapStatus').textContent = '1人目の席をクリック';
+  closeEdit();
+  render();
+}
+
+function cancelSwap() {
+  swapMode = false;
+  swapSource = null;
+  document.getElementById('swapBanner').classList.remove('active');
+  render();
+}
+
+function handleSwapClick(rowId, tableId, seatIdx, name) {
+  if (!swapSource) {
+    swapSource = {rowId, tableId, seatIdx};
+    document.getElementById('swapStatus').textContent = `"${name || '空席'}" → 2人目をクリック`;
+    render();
+  } else {
+    // Execute swap
+    const srcRow = rows.find(r => r.id == swapSource.rowId);
+    const srcTable = srcRow ? srcRow.tables.find(t => t.id == swapSource.tableId) : null;
+    const dstRow = rows.find(r => { return r.tables.some(t => t.id == tableId); });
+    const dstTable = dstRow ? dstRow.tables.find(t => t.id == tableId) : null;
+    if (srcTable && dstTable) {
+      const tmp = srcTable.seats[swapSource.seatIdx];
+      srcTable.seats[swapSource.seatIdx] = dstTable.seats[seatIdx];
+      dstTable.seats[seatIdx] = tmp;
+      // Swap pins too
+      const pk1 = pinKey(swapSource.rowId, swapSource.tableId, swapSource.seatIdx);
+      const pk2 = pinKey(rowId, tableId, seatIdx);
+      const p1 = !!pinnedSeats[pk1], p2 = !!pinnedSeats[pk2];
+      if (p1) pinnedSeats[pk2] = true; else delete pinnedSeats[pk2];
+      if (p2) pinnedSeats[pk1] = true; else delete pinnedSeats[pk1];
+      showToast('席を入れ替えました ⇄', 'success');
+    }
+    swapSource = null;
+    cancelSwap();
+  }
+}
+
+// ── Edit popup ───────────────────────────────────────────────
+function openEdit(e, t, si, rowId) {
+  if (lockedTables[t.id]) { showToast('この卓はロックされています 🔒', 'error'); return; }
+  editTarget = {t, si, rowId};
   const popup = document.getElementById('editPopup');
   const inp = document.getElementById('editInput');
-  document.getElementById('editPopupTitle').textContent = `${t.name} — ${si+1}番席`;
+  document.getElementById('editPopupTitle').textContent = `${t.name}・${si+1}番席`;
   inp.value = t.seats[si];
 
-  // Suggestions from unplaced participants
+  const pk = pinKey(rowId, t.id, si);
+  const pinBtn = document.getElementById('pinBtn');
+  pinBtn.classList.toggle('active', !!pinnedSeats[pk]);
+
+  // Suggestions
   const placed = getAllPlacedNames();
   const unplaced = participants.filter(p => !placed.includes(p.name) || p.name === t.seats[si]);
   const sl = document.getElementById('suggestList');
   sl.innerHTML = '';
-  if (unplaced.length) {
-    unplaced.slice(0, 8).forEach(p => {
-      const item = document.createElement('div');
-      item.className = 'suggest-item';
-      item.textContent = p.name;
-      item.onclick = () => { inp.value = p.name; confirmEdit(); };
-      sl.appendChild(item);
-    });
-  }
+  unplaced.slice(0, 8).forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'suggest-item';
+    item.textContent = p.name;
+    item.onclick = () => { inp.value = p.name; confirmEdit(); };
+    sl.appendChild(item);
+  });
 
+  // Position popup
   const rect = e.target.getBoundingClientRect();
   popup.style.display = 'block';
-  const ph = popup.offsetHeight || 200;
-  let top = rect.bottom + 4;
-  if (top + ph > window.innerHeight) top = rect.top - ph - 4;
-  popup.style.top = Math.max(0, top) + 'px';
-  popup.style.left = Math.min(rect.left, window.innerWidth - 220) + 'px';
+  const ph = popup.offsetHeight || 220;
+  let top = rect.bottom + 6;
+  if (top + ph > window.innerHeight) top = rect.top - ph - 6;
+  popup.style.top = Math.max(8, top) + 'px';
+  popup.style.left = Math.min(rect.left, window.innerWidth - 270) + 'px';
   setTimeout(() => inp.focus(), 10);
+}
+
+function togglePinSeat() {
+  if (!editTarget) return;
+  const pk = pinKey(editTarget.rowId, editTarget.t.id, editTarget.si);
+  if (pinnedSeats[pk]) delete pinnedSeats[pk];
+  else pinnedSeats[pk] = true;
+  document.getElementById('pinBtn').classList.toggle('active', !!pinnedSeats[pk]);
 }
 
 function confirmEdit() {
@@ -972,6 +1470,8 @@ function confirmEdit() {
 
 function clearSeat() {
   if (!editTarget) return;
+  const pk = pinKey(editTarget.rowId, editTarget.t.id, editTarget.si);
+  delete pinnedSeats[pk];
   editTarget.t.seats[editTarget.si] = '';
   closeEdit();
   render();
@@ -984,32 +1484,41 @@ function closeEdit() {
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && editTarget) confirmEdit();
-  if (e.key === 'Escape') closeEdit();
+  if (e.key === 'Escape') { closeEdit(); if (swapMode) cancelSwap(); }
 });
 document.addEventListener('click', e => {
   if (editTarget && !document.getElementById('editPopup').contains(e.target)) closeEdit();
 });
 
-// ── Stats ───────────────────────────────────────────────────
+// ── Stats ────────────────────────────────────────────────────
 function updateStats() {
   let totalR = rows.length, totalT = 0, totalS = 0, filledS = 0;
   rows.forEach(r => r.tables.forEach(t => { totalT++; totalS += t.seats.length; filledS += t.seats.filter(s=>s).length; }));
   const sa = document.getElementById('statsArea');
   sa.innerHTML = `
-    <div class="stat-card"><div class="num">${totalR}</div><div class="lbl">列</div></div>
-    <div class="stat-card"><div class="num">${totalT}</div><div class="lbl">卓</div></div>
-    <div class="stat-card accent"><div class="num">${filledS}</div><div class="lbl">着席済み</div></div>
-    <div class="stat-card"><div class="num">${totalS - filledS}</div><div class="lbl">空席</div></div>`;
+    <div class="stat-card"><div class="num">${totalR}</div><div class="lbl">ROWS</div></div>
+    <div class="stat-card"><div class="num">${totalT}</div><div class="lbl">TABLES</div></div>
+    <div class="stat-card accent"><div class="num">${filledS}</div><div class="lbl">SEATED</div></div>
+    <div class="stat-card"><div class="num">${totalS - filledS}</div><div class="lbl">OPEN</div></div>`;
 }
 
-// ── List view ───────────────────────────────────────────────
+// ── List view ────────────────────────────────────────────────
 function updateListView() {
   const area = document.getElementById('listViewArea');
-  let html = '<table class="list-table"><thead><tr><th>列</th><th>卓名</th><th>席</th><th>参加者名</th><th>ステータス</th></tr></thead><tbody>';
+  let html = '<table class="list-table"><thead><tr><th>列</th><th>卓名</th><th>席</th><th>名前</th><th>固定</th><th>ステータス</th></tr></thead><tbody>';
   rows.forEach((row, ri) => {
     row.tables.forEach(t => {
       t.seats.forEach((name, si) => {
-        html += `<tr><td>ROW ${ri+1}</td><td>${t.name}</td><td>${si+1}</td><td>${name || '—'}</td><td><span class="badge ${name?'filled':'empty'}">${name?'着席':'空席'}</span></td></tr>`;
+        const pk = pinKey(row.id, t.id, si);
+        const isPinned = !!pinnedSeats[pk];
+        html += `<tr>
+          <td>ROW ${ri+1}</td>
+          <td>${t.name}${lockedTables[t.id]?'🔒':''}</td>
+          <td>${si+1}</td>
+          <td>${name || '—'}</td>
+          <td>${isPinned ? '<span class="badge pin">📍固定</span>' : ''}</td>
+          <td><span class="badge ${name?'filled':'empty'}">${name?'着席':'空席'}</span></td>
+        </tr>`;
       });
     });
   });
@@ -1019,41 +1528,62 @@ function updateListView() {
 
 // ── Tabs ─────────────────────────────────────────────────────
 function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', ['layout','list'][i] === name));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['layout','list'][i] === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   if (name === 'list') updateListView();
 }
 
-// ── Export ───────────────────────────────────────────────────
-// ── CSV Export（座席表保存用・レイアウト情報込み） ────────────────
+// ── Background customizer ────────────────────────────────────
+function setBg(el) {
+  const color = el.dataset.color;
+  document.documentElement.style.setProperty('--user-bg', color);
+  document.getElementById('bgColorPicker').value = color;
+  document.getElementById('bgColorText').value = color;
+  document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+function setBgFromPicker(val) {
+  document.documentElement.style.setProperty('--user-bg', val);
+  document.getElementById('bgColorText').value = val;
+  document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+}
+function setBgFromText(val) {
+  if (/^#[0-9a-fA-F]{3,6}$/.test(val)) {
+    document.documentElement.style.setProperty('--user-bg', val);
+    document.getElementById('bgColorPicker').value = val;
+    document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+  }
+}
+
+// ── Export CSV ───────────────────────────────────────────────
 function exportCSV() {
-  // 1行目: メタデータ（レイアウト復元用）
-  let csv = '#NEXSEAT_V1\n';
+  let csv = '#NEXSEAT_V2\n';
   csv += '#LAYOUT:' + JSON.stringify(rows.map(row => ({
     id: row.id,
-    tables: row.tables.map(t => ({ id: t.id, name: t.name, layout: t.layout, seatCount: t.seats.length }))
+    tables: row.tables.map(t => ({ id: t.id, name: t.name, layout: t.layout, seatCount: t.seats.length, locked: !!lockedTables[t.id] }))
   }))) + '\n';
-  // 2行目以降: 席データ
-  csv += '列,卓名,席番号,参加者名\n';
+  csv += '#PINS:' + JSON.stringify(pinnedSeats) + '\n';
+  csv += '列,卓名,席番号,参加者名,固定\n';
   rows.forEach((row, ri) => {
     row.tables.forEach(t => {
       t.seats.forEach((name, si) => {
-        csv += `ROW${ri+1},"${t.name}",${si+1},"${name}"\n`;
+        const pk = pinKey(row.id, t.id, si);
+        csv += `ROW${ri+1},"${t.name}",${si+1},"${name}",${pinnedSeats[pk]?'1':'0'}\n`;
       });
     });
   });
   const now = new Date();
-  const dateStr = `${now.getMonth()+1}${now.getDate()}_${now.getHours()}${String(now.getMinutes()).padStart(2,'0')}`;
+  const ds = `${now.getMonth()+1}${now.getDate()}_${now.getHours()}${String(now.getMinutes()).padStart(2,'0')}`;
   const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `座席表_${dateStr}.csv`;
+  a.download = `座席表_${ds}.csv`;
   a.click();
   showToast('座席表CSVを保存しました', 'success');
 }
 
-// ── CSV Restore（座席表CSVから復元） ────────────────────────────
+// ── Restore CSV ──────────────────────────────────────────────
 function restoreFromCSV(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -1062,41 +1592,43 @@ function restoreFromCSV(e) {
     try {
       const text = ev.target.result.replace(/^\uFEFF/, '');
       const lines = text.split('\n');
-      // NexSeat形式かチェック
-      if (!lines[0].startsWith('#NEXSEAT_V1')) {
-        showToast('NexSeatの座席表CSVではありません', 'err');
-        e.target.value = '';
-        return;
-      }
-      // レイアウト情報を復元
+      if (!lines[0].startsWith('#NEXSEAT_V')) { showToast('NexSeatのCSVではありません', 'error'); e.target.value=''; return; }
       const layoutLine = lines[1].replace('#LAYOUT:', '');
       const layoutData = JSON.parse(layoutLine);
-      // 席データを解析
-      const seatMap = {}; // "列_卓名_席番号" -> 参加者名
-      for (let i = 3; i < lines.length; i++) {
-        const cols = splitLine(lines[i].trim());
+      // pins
+      let savedPins = {};
+      if (lines[2] && lines[2].startsWith('#PINS:')) {
+        try { savedPins = JSON.parse(lines[2].replace('#PINS:','')); } catch(e2) {}
+      }
+      // seat data
+      const seatMap = {};
+      const pinMap = {};
+      const dataStart = lines.findIndex(l => l.startsWith('列,')) + 1;
+      for (let i = dataStart; i < lines.length; i++) {
+        const cols = splitCSVLine(lines[i]);
         if (cols.length < 4) continue;
         const key = `${cols[0]}_${cols[1]}_${cols[2]}`;
         seatMap[key] = cols[3];
+        pinMap[key] = cols[4] === '1';
       }
-      // rowsを再構築
       rows = layoutData.map((rowData, ri) => ({
-        id: rowData.id || Date.now() + ri,
-        tables: rowData.tables.map((tData, ti) => ({
-          id: tData.id || Date.now() + ri * 100 + ti,
-          name: tData.name,
-          layout: tData.layout,
-          seats: Array.from({length: tData.seatCount}, (_, si) => {
-            const key = `ROW${ri+1}_${tData.name}_${si+1}`;
-            return seatMap[key] || '';
-          })
-        }))
+        id: rowData.id,
+        tables: rowData.tables.map((td, ti) => {
+          if (td.locked) lockedTables[td.id] = true;
+          return {
+            id: td.id, name: td.name, layout: td.layout,
+            seats: Array.from({length: td.seatCount}, (_, si) => {
+              const key = `ROW${ri+1}_${td.name}_${si+1}`;
+              return seatMap[key] || '';
+            })
+          };
+        })
       }));
+      pinnedSeats = savedPins;
       render();
-      saveToLocalStorage();
       showToast('座席表を復元しました！', 'success');
     } catch(err) {
-      showToast('CSVの読み込みに失敗しました', 'err');
+      showToast('CSV読み込みエラー', 'error');
       console.error(err);
     }
     e.target.value = '';
@@ -1104,37 +1636,16 @@ function restoreFromCSV(e) {
   rd.readAsText(file, 'UTF-8');
 }
 
-// ── 自動保存（localStorage） ─────────────────────────────────
-function saveToLocalStorage() {
-  try {
-    const data = { rows, participants, banPairs, savedAt: new Date().toISOString() };
-    localStorage.setItem(LS_KEY, JSON.stringify(data));
-    updateAutosaveIndicator(data.savedAt);
-  } catch(e) { console.warn('自動保存失敗', e); }
-}
-
-function updateAutosaveIndicator(isoStr) {
-  const dot = document.getElementById('autosave-dot');
-  const label = document.getElementById('autosave-label');
-  if (!dot || !label) return;
-  const d = new Date(isoStr);
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mm = String(d.getMinutes()).padStart(2,'0');
-  dot.style.background = 'var(--green, #4ade80)';
-  label.textContent = `自動保存 ${hh}:${mm}`;
-}
-
-function scheduleAutosave() {
-  if (autosaveTimer) clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(() => saveToLocalStorage(), 1500);
-}
-
-
-
 // ── Misc ─────────────────────────────────────────────────────
 function clearAllNames() {
-  if (!confirm('全員の名前を削除しますか？')) return;
-  rows.forEach(r => r.tables.forEach(t => t.seats = t.seats.map(() => '')));
+  if (!confirm('固定席以外の全名前を削除しますか？')) return;
+  rows.forEach(row => row.tables.forEach(t => {
+    if (lockedTables[t.id]) return;
+    t.seats = t.seats.map((s, si) => {
+      const pk = pinKey(row.id, t.id, si);
+      return pinnedSeats[pk] ? s : '';
+    });
+  }));
   render();
 }
 
@@ -1142,39 +1653,49 @@ function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show' + (type ? ' ' + type : '');
-  setTimeout(() => t.className = 'toast', 2500);
+  setTimeout(() => t.className = 'toast', 2600);
+}
+
+// ── Autosave ─────────────────────────────────────────────────
+function scheduleAutosave() {
+  if (autosaveTimer) clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(saveToLS, 1500);
+}
+function saveToLS() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({rows, participants, pinnedSeats, lockedTables, savedAt: new Date().toISOString()}));
+    const d = new Date();
+    document.getElementById('autosave-label').textContent =
+      `saved ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  } catch(e) {}
 }
 
 // ── Init ─────────────────────────────────────────────────────
 (function init() {
-  // localStorageから復元を試みる
   try {
     const saved = localStorage.getItem(LS_KEY);
     if (saved) {
       const data = JSON.parse(saved);
       if (data.rows && data.rows.length > 0) {
         rows = data.rows;
-        if (data.participants) participants = data.participants;
-        if (data.banPairs) banPairs = data.banPairs;
+        participants = data.participants || [];
+        pinnedSeats = data.pinnedSeats || {};
+        lockedTables = data.lockedTables || {};
         render();
-        if (data.participants && data.participants.length) {
-          renderParticipants();
-          renderSeedPanel();
-          syncBanSelects();
-          renderBanList();
-        }
-        updateAutosaveIndicator(data.savedAt);
+        if (participants.length) renderParticipants();
+        const d = new Date(data.savedAt);
+        document.getElementById('autosave-label').textContent =
+          `restored ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
         showToast('前回の作業を復元しました', 'success');
         return;
       }
     }
   } catch(e) {}
-  // デフォルト初期レイアウト
-  document.getElementById('rowCols').value = 3;
-  document.getElementById('defSeats').value = 6;
-  document.getElementById('defLayout').value = '2x3';
-  addRow();
-  addRow();
+  // Default layout
+  const row1 = buildRow(4, 6, '2x3');
+  const row2 = buildRow(4, 6, '2x3');
+  rows.push(row1, row2);
+  render();
 })();
 </script>
 </body>
