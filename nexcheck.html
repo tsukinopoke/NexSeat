@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexCheck</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0f0f13;--sur:#17171d;--sur2:#1e1e27;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --acc:#7c6df0;--acc2:#a594f9;--acc-dim:rgba(124,109,240,0.13);
+  --txt:#f0eeff;--txt2:#a09ab8;--txt3:#625d78;
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.12);
+  --red:#f87171;--red-dim:rgba(248,113,113,0.12);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.13);
+  --r:10px;--rl:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:13px}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--sur);position:sticky;top:0;z-index:100;gap:8px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px rgba(124,109,240,.4)}
+.hdr-acts{display:flex;gap:6px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r);font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s;border:1px solid var(--border2);background:var(--sur2);color:var(--txt2);white-space:nowrap}
+.btn:hover{border-color:var(--acc);color:var(--acc2);background:var(--acc-dim)}
+.btn.primary{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn.primary:hover{background:var(--acc2)}
+.btn.green{background:var(--green-dim);color:var(--green);border-color:rgba(74,222,128,.3)}
+.btn.amber{background:var(--amber-dim);color:var(--amber);border-color:rgba(251,191,36,.3)}
+.btn.danger{color:var(--red);border-color:rgba(248,113,113,.3)}
+.btn.sm{padding:3px 8px;font-size:11px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--sur2);border-color:var(--border)}
+.btn svg{width:12px;height:12px;flex-shrink:0}
+.layout{display:flex;height:calc(100vh - 57px);overflow:hidden}
+.sidebar{width:260px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.content{flex:1;overflow-y:auto;padding:16px}
+.sb-sec{padding:12px 14px;border-bottom:1px solid var(--border)}
+.sb-ttl{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--txt3);text-transform:uppercase;margin-bottom:10px}
+.field{margin-bottom:8px}
+.field label{display:block;font-size:11px;color:var(--txt2);margin-bottom:3px}
+.field input,.field select{width:100%;padding:6px 9px;border-radius:var(--r);border:1px solid var(--border2);background:var(--sur2);color:var(--txt);font-family:inherit;font-size:12px}
+.field input:focus,.field select:focus{outline:none;border-color:var(--acc)}
+.field input[type=number]{width:100%}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12px;color:var(--txt2)}
+.toggle{position:relative;width:32px;height:18px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--sur2);border-radius:9px;border:1px solid var(--border2);transition:.2s}
+.toggle-slider:before{content:'';position:absolute;height:12px;width:12px;left:2px;bottom:2px;background:var(--txt3);border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--acc);border-color:var(--acc)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(14px);background:#fff}
+.dz{border:1.5px dashed var(--border2);border-radius:var(--r);padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:6px}
+.dz:hover,.dz.over{border-color:var(--acc);background:var(--acc-dim)}
+.dz p{font-size:11px;color:var(--txt2)}
+.dz strong{color:var(--acc2)}
+.tabs{display:flex;gap:2px;margin-bottom:14px}
+.tab{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--txt3);font-family:inherit;transition:all .15s}
+.tab.active{background:var(--acc-dim);color:var(--acc2)}
+.tab:hover:not(.active){color:var(--txt2);background:var(--sur2)}
+.tab-badge{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--sur2);color:var(--txt3);margin-left:4px}
+.tab.active .tab-badge{background:rgba(124,109,240,.3);color:var(--acc2)}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{background:var(--sur2);border-radius:var(--r);padding:8px 12px;border:1px solid var(--border);min-width:80px}
+.stat .n{font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:var(--txt)}
+.stat .l{font-size:10px;color:var(--txt3)}
+.stat.acc{border-color:var(--acc);background:var(--acc-dim)}
+.stat.acc .n{color:var(--acc2)}
+.tbl-wrap{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
+th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--txt3);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--sur2);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--txt);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr.checked td{opacity:.45}
+tr.checked td:first-child{opacity:1}
+.badge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap}
+.badge.general{background:var(--acc-dim);color:var(--acc2)}
+.badge.equip{background:var(--amber-dim);color:var(--amber)}
+.badge.watch{background:var(--sur2);color:var(--txt2)}
+.badge.paid{background:var(--green-dim);color:var(--green)}
+.badge.unpaid{background:var(--red-dim);color:var(--red)}
+.chk-cell{text-align:center}
+.chk-cell input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--acc)}
+.fee-cell{font-family:'DM Mono',monospace;white-space:nowrap}
+.fee-cell.unpaid{color:var(--red)}
+.fee-cell.paid{color:var(--green)}
+.edit-fee{width:70px;padding:2px 6px;border-radius:5px;border:1px solid var(--border2);background:var(--sur2);color:var(--txt);font-family:'DM Mono',monospace;font-size:11px;text-align:right}
+.edit-fee:focus{outline:none;border-color:var(--acc)}
+.equip-input{width:80px;padding:2px 6px;border-radius:5px;border:1px solid var(--border2);background:var(--sur2);color:var(--txt);font-size:11px}
+.equip-input:focus{outline:none;border-color:var(--acc)}
+.seat-input{width:60px;padding:2px 6px;border-radius:5px;border:1px solid var(--border2);background:var(--sur2);color:var(--txt);font-size:11px}
+.seat-input:focus{outline:none;border-color:var(--acc)}
+.afterparty-sel{padding:2px 6px;border-radius:5px;border:1px solid var(--border2);background:var(--sur2);color:var(--txt);font-size:11px;cursor:pointer}
+.afterparty-sel:focus{outline:none;border-color:var(--acc)}
+.no-data{text-align:center;padding:48px 20px;color:var(--txt3);font-size:13px}
+.no-data p{margin-top:8px;font-size:12px}
+.search-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.search-bar input{flex:1;padding:7px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--sur2);color:var(--txt);font-family:inherit;font-size:12px}
+.search-bar input:focus{outline:none;border-color:var(--acc)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--sur);border:1px solid var(--border2);border-radius:var(--r);padding:9px 15px;font-size:12px;color:var(--txt);z-index:999;opacity:0;transform:translateY(6px);transition:all .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok{border-color:rgba(74,222,128,.4);color:var(--green)}
+.toast.err{border-color:rgba(248,113,113,.4);color:var(--red)}
+.fee-settings{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fee-input-wrap{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--txt2)}
+.fee-input-wrap input{flex:1;padding:4px 6px;border-radius:6px;border:1px solid var(--border2);background:var(--sur2);color:var(--txt);font-family:'DM Mono',monospace;font-size:11px}
+.fee-input-wrap input:focus{outline:none;border-color:var(--acc)}
+.progress-bar{height:4px;background:var(--sur2);border-radius:2px;margin-top:6px;overflow:hidden}
+.progress-fill{height:100%;background:var(--acc);border-radius:2px;transition:width .3s}
+@media print{
+  body{background:#fff;color:#000}
+  .hdr,.layout>.sidebar,.stats,.search-bar,.tabs,.hdr-acts{display:none!important}
+  .layout{display:block}
+  .content{padding:0;overflow:visible}
+  .tbl-wrap{border:1px solid #ddd;border-radius:0}
+  th{background:#f5f5f5;color:#333}
+  td{color:#000;border-bottom:1px solid #eee}
+  tr:hover td{background:transparent}
+  .badge.general{background:#e8e4ff;color:#3d2fb3}
+  .badge.equip{background:#fef3c7;color:#92400e}
+  .badge.watch{background:#f3f4f6;color:#6b7280}
+  .badge.paid{background:#dcfce7;color:#166534}
+  .badge.unpaid{background:#fee2e2;color:#991b1b}
+  .edit-fee,.equip-input,.seat-input,.afterparty-sel{border:none;background:transparent;padding:0}
+}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="logo"><div class="logo-dot"></div>NexCheck</div>
+  <div class="hdr-acts">
+    <div id="autosave-ind" style="font-size:11px;color:var(--txt3);display:flex;align-items:center;gap:4px">
+      <span id="autosave-dot" style="width:6px;height:6px;border-radius:50%;background:var(--txt3);display:inline-block"></span>
+      <span id="autosave-lbl">—</span>
+    </div>
+    <button class="btn sm amber" onclick="exportXLSX()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Excel出力
+    </button>
+    <button class="btn sm" onclick="exportCSV()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      CSV出力
+    </button>
+    <button class="btn sm primary" onclick="window.print()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      印刷
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+<div class="sidebar">
+  <!-- Import -->
+  <div class="sb-sec">
+    <div class="sb-ttl">インポート</div>
+    <div class="dz" id="dz-main" onclick="document.getElementById('csv-main').click()">
+      <div style="font-size:20px;margin-bottom:4px">📂</div>
+      <p><strong>Tonemel / start.gg</strong><br>CSV・Excel・スプシをドロップ</p>
+    </div>
+    <input type="file" id="csv-main" accept=".csv,.tsv,.txt,.xlsx,.xls,.ods" style="display:none" onchange="handleMainFile(event)">
+    <div class="dz" id="dz-seat" onclick="document.getElementById('csv-seat').click()">
+      <p><strong>NexSeat CSV</strong>（任意）<br>卓番号を反映</p>
+    </div>
+    <input type="file" id="csv-seat" accept=".csv,.xlsx" style="display:none" onchange="handleSeatFile(event)">
+    <div class="dz" id="dz-ap" onclick="document.getElementById('csv-ap').click()">
+      <p><strong>二次会 CSV</strong>（任意）<br>Tonemel/start.gg対応</p>
+    </div>
+    <input type="file" id="csv-ap" accept=".csv,.tsv,.txt,.xlsx,.xls" style="display:none" onchange="handleAfterpartyFile(event)">
+  </div>
+
+  <!-- 参加費設定 -->
+  <div class="sb-sec">
+    <div class="sb-ttl">参加費設定</div>
+    <div class="fee-settings">
+      <div class="fee-input-wrap"><span>一般</span><input type="number" id="fee-general" value="3000" min="0" onchange="recalcFees()"><span>円</span></div>
+      <div class="fee-input-wrap"><span>機材</span><input type="number" id="fee-equip" value="2000" min="0" onchange="recalcFees()"><span>円</span></div>
+      <div class="fee-input-wrap"><span>見学</span><input type="number" id="fee-watch" value="0" min="0" onchange="recalcFees()"><span>円</span></div>
+    </div>
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+      <div class="toggle-row"><span>二次会あり</span>
+        <label class="toggle"><input type="checkbox" id="afterparty-on" onchange="toggleAfterparty()"><span class="toggle-slider"></span></label>
+      </div>
+      <div id="afterparty-fee-wrap" style="display:none;margin-top:6px">
+        <div class="fee-input-wrap"><span>二次会費</span><input type="number" id="fee-afterparty" value="2000" min="0" onchange="recalcFees()"><span>円</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表示項目 -->
+  <div class="sb-sec">
+    <div class="sb-ttl">表示項目</div>
+    <div class="toggle-row"><span>エントリー順</span><label class="toggle"><input type="checkbox" id="col-entry" checked onchange="render()"><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><span>TwitterID</span><label class="toggle"><input type="checkbox" id="col-twitter" checked onchange="render()"><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><span>DiscordID</span><label class="toggle"><input type="checkbox" id="col-discord" checked onchange="render()"><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><span>参加費</span><label class="toggle"><input type="checkbox" id="col-fee" checked onchange="render()"><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><span>支払い状況</span><label class="toggle"><input type="checkbox" id="col-paid" checked onchange="render()"><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><span>卓番号</span><label class="toggle"><input type="checkbox" id="col-seat" onchange="render()"><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><span>機材位置</span><label class="toggle"><input type="checkbox" id="col-equip-pos" onchange="render()"><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><span>二次会</span><label class="toggle"><input type="checkbox" id="col-afterparty" onchange="render()"><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><span>備考欄</span><label class="toggle"><input type="checkbox" id="col-note" onchange="render()"><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">
+      <span style="font-size:11px;color:var(--txt3)">金額表示</span>
+    </div>
+    <div class="field" style="margin-top:4px">
+      <select id="fee-display" onchange="render()" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--sur2);color:var(--txt);font-size:11px">
+        <option value="total">合計金額</option>
+        <option value="event-only">大会費のみ</option>
+        <option value="afterparty-only">二次会費のみ</option>
+        <option value="both">大会費 + 二次会費（別表示）</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 進捗 -->
+  <div class="sb-sec">
+    <div class="sb-ttl">受付進捗</div>
+    <div id="progress-area" style="font-size:12px;color:var(--txt2)">—</div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('all')">全体<span class="tab-badge" id="badge-all">0</span></button>
+    <button class="tab" onclick="switchTab('general')">一般<span class="tab-badge" id="badge-general">0</span></button>
+    <button class="tab" onclick="switchTab('equip')">機材<span class="tab-badge" id="badge-equip">0</span></button>
+    <button class="tab" onclick="switchTab('watch')">見学<span class="tab-badge" id="badge-watch">0</span></button>
+    <button class="tab" onclick="switchTab('aponly')" style="color:var(--amber)">二次会のみ<span class="tab-badge" id="badge-aponly">0</span></button>
+  </div>
+
+  <div class="stats" id="stats-area"></div>
+
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="名前・TwitterID・DiscordIDで検索..." oninput="render()">
+    <button class="btn sm ghost danger" onclick="clearChecks()">チェックをリセット</button>
+  </div>
+
+  <div class="tbl-wrap">
+    <div id="table-area"><div class="no-data">📂<p>CSVをインポートしてください</p></div></div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────
+let participants = [];
+let currentTab = 'all';
+let autosaveTimer = null;
+const LS_KEY = 'nexcheck_v1';
+
+// ── File Parse（CSV / Excel / スプシ対応） ──────────────────
+function handleMainFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (['xlsx','xls','ods'].includes(ext)) {
+    const rd = new FileReader();
+    rd.onload = ev => {
+      const wb = XLSX.read(ev.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      if (!rows.length) { showToast('データが見つかりません', 'err'); return; }
+      const hdrs = rows[0].map(h => String(h).trim());
+      const lines = rows.map(r => r.map(c => String(c)).join('\t'));
+      const sep = '\t';
+      if (hdrs.includes('GamerTag')) parseStartGG(lines, hdrs, sep);
+      else parseTonamel(lines, hdrs, sep);
+    };
+    rd.readAsArrayBuffer(file);
+  } else {
+    const rd = new FileReader();
+    rd.onload = ev => {
+      const text = ev.target.result.replace(/^\uFEFF/, '');
+      const sep = text.includes('\t') ? '\t' : ',';
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+      const hdrs = splitLine(lines[0], sep);
+      if (hdrs.includes('GamerTag')) parseStartGG(lines, hdrs, sep);
+      else parseTonamel(lines, hdrs, sep);
+    };
+    rd.readAsText(file, 'UTF-8');
+  }
+  e.target.value = '';
+}
+
+function handleMainCSV(e) { handleMainFile(e); }
+
+function parseStartGG(lines, hdrs, sep) {
+  const idx = h => hdrs.indexOf(h);
+  const iId = idx('Id'), iTag = idx('GamerTag'), iTw = idx('Twitter Handle');
+  const iDis = idx('Discord ID'), iVtype = idx('Venue Type'), iVfee = idx('Venue Fee Name');
+  const iOwed = idx('Total Owed'), iBal = idx('Balance');
+
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const c = splitLine(lines[i], sep);
+    if (c.length < 5) continue;
+    const vtype = (c[iVtype] || '').trim();
+    const vfee = (c[iVfee] || '').trim();
+    if (vtype === 'spectator' && !vfee.includes('キャンセル')) continue;
+    if (!c[iTag]) continue;
+
+    let kind = 'general';
+    if (vtype === 'spectator') kind = 'watch';
+    else if (vfee.includes('機材')) kind = 'equip';
+
+    const owed = parseInt(c[iOwed]) || 0;
+    const bal = parseInt(c[iBal]) || 0;
+    const paid = bal === 0 && owed > 0;
+
+    rows.push({
+      id: parseInt(c[iId]) || i,
+      name: (c[iTag] || '').trim(),
+      twitter: (c[iTw] || '').replace(/^@/, ''),
+      discord: (c[iDis] || '').trim(),
+      kind,
+      feeBase: calcFeeBase(kind),
+      feeCustom: null,
+      paid,
+      seat: '',
+      equipPos: '',
+      afterparty: false,
+      checked: false,
+      note: '',
+    });
+  }
+  rows.sort((a, b) => a.id - b.id);
+  rows.forEach((r, i) => r.entryOrder = i + 1);
+  rows.sort((a, b) => sortName(a.name, b.name));
+  participants = rows;
+  syncAfterpartySetting();
+  render();
+  showToast(`${rows.length}人を読み込みました`, 'ok');
+}
+
+function parseTonamel(lines, hdrs, sep) {
+  const idx = h => hdrs.indexOf(h);
+  const iName = idx('エントリー名');
+  const iStatus = idx('ステータス');
+  const iStyle = hdrs.findIndex(h => h.includes('参加スタイル') || h.includes('参加種別'));
+
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const c = splitLine(lines[i], sep);
+    if ((c[iStatus] || '') !== '出場') continue;
+    let name = '';
+    for (let j = 2; j < Math.min(c.length, 15); j++) {
+      const v = c[j].trim();
+      if (v && !['はい、使用可能です','いいえ、参加していません！','はい、参加しました！','いいえ、複数回目の参加です','はい、初参加です'].includes(v) && !v.startsWith('@') && !v.match(/^\d{4}-/)) {
+        name = v; break;
+      }
+    }
+    if (!name) name = c[2] || '不明';
+
+    let twitter = '', discord = '';
+    hdrs.forEach((h, hi) => {
+      if (h.toLowerCase().includes('twitter') || h.includes('X(')) twitter = (c[hi] || '').replace(/^@/, '');
+      if (h.toLowerCase().includes('discord')) discord = c[hi] || '';
+    });
+
+    rows.push({
+      id: i,
+      name: name.trim(),
+      twitter, discord,
+      kind: 'general',
+      feeBase: calcFeeBase('general'),
+      feeCustom: null,
+      paid: false,
+      seat: '', equipPos: '', afterparty: false, checked: false,
+      entryOrder: i,
+    });
+  }
+  rows.sort((a, b) => sortName(a.name, b.name));
+  participants = rows;
+  render();
+  showToast(`${rows.length}人を読み込みました（Tonemel）`, 'ok');
+}
+
+function handleSeatFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  readFileAsText(file, text => {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    const hdrs = splitLine(lines[0], ',');
+    const iName = hdrs.indexOf('参加者名');
+    const iTbl = hdrs.findIndex(h => h === '卓名' || h === '卓番号');
+    if (iName < 0 || iTbl < 0) { showToast('NexSeat CSVの形式が合いません', 'err'); return; }
+    let matched = 0;
+    for (let i = 1; i < lines.length; i++) {
+      const c = splitLine(lines[i], ',');
+      const name = (c[iName] || '').replace(/^"|"$/g, '').trim();
+      const seat = (c[iTbl] || '').replace(/^"|"$/g, '').trim();
+      if (!name || !seat) continue;
+      const p = participants.find(x => x.name === name);
+      if (p) { p.seat = seat; matched++; }
+    }
+    document.getElementById('col-seat').checked = true;
+    render(); showToast(`${matched}人の卓番号を反映しました`, 'ok');
+  });
+  e.target.value = '';
+}
+
+function handleSeatCSV(e) { handleSeatFile(e); }
+
+// ── 二次会 CSV読み込み ────────────────────────────────
+function handleAfterpartyFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  readAnyFile(file, (lines, hdrs, sep) => {
+    // エントリー名 or GamerTag
+    const iName = hdrs.includes('GamerTag') ? hdrs.indexOf('GamerTag') : hdrs.indexOf('エントリー名');
+    const iDis = hdrs.indexOf('Discord ID') >= 0 ? hdrs.indexOf('Discord ID') : hdrs.findIndex(h => h.toLowerCase().includes('discord'));
+    const iStatus = hdrs.indexOf('ステータス');
+
+    const apList = []; // {name, discord}
+    for (let i = 1; i < lines.length; i++) {
+      const c = splitLine(lines[i], sep);
+      // Tonemelなら出場のみ、start.ggならcompetitorのみ
+      if (iStatus >= 0 && (c[iStatus] || '') !== '出場') continue;
+      const name = (c[iName] || '').trim();
+      const discord = iDis >= 0 ? (c[iDis] || '').trim() : '';
+      if (name) apList.push({ name, discord });
+    }
+
+    // マッチング：名前一致 → 二次会参加。名前不一致でもDiscordID一致なら参加
+    let matched = 0, discordMatched = 0, apOnly = [];
+    apList.forEach(ap => {
+      // 名前完全一致
+      let p = participants.find(x => x.name === ap.name);
+      if (!p && ap.discord) {
+        // DiscordIDで補完（空のDiscordIDはスキップ）
+        p = participants.find(x => x.discord && x.discord === ap.discord);
+        if (p) discordMatched++;
+      }
+      if (p) {
+        p.afterparty = true; matched++;
+      } else {
+        // 大会参加者リストにいない → 二次会のみ参加者
+        apOnly.push(ap);
+      }
+    });
+
+    // 二次会のみ参加者を名簿に追加
+    apOnly.forEach((ap, i) => {
+      participants.push({
+        id: 900000 + i,
+        name: ap.name,
+        twitter: '', discord: ap.discord || '',
+        kind: 'aponly',
+        feeBase: 0, feeCustom: null,
+        paid: false, seat: '', equipPos: '',
+        afterparty: true, checked: false, note: '⚠️ 二次会のみ',
+        entryOrder: null,
+      });
+    });
+
+    // 二次会設定をONにする
+    document.getElementById('afterparty-on').checked = true;
+    document.getElementById('afterparty-fee-wrap').style.display = 'block';
+    document.getElementById('col-afterparty').checked = true;
+
+    participants.sort((a, b) => sortName(a.name, b.name));
+    render();
+    let msg = `二次会参加 ${matched}人を反映`;
+    if (discordMatched > 0) msg += `（Discord照合 ${discordMatched}人）`;
+    if (apOnly.length > 0) msg += `・二次会のみ ${apOnly.length}人を追加`;
+    showToast(msg, 'ok');
+    scheduleAutosave();
+  });
+  e.target.value = '';
+}
+
+// ── ファイル読み込みユーティリティ ───────────────────────
+function readFileAsText(file, callback) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (['xlsx','xls','ods'].includes(ext)) {
+    const rd = new FileReader();
+    rd.onload = ev => {
+      const wb = XLSX.read(ev.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      const text = rows.map(r => r.map(c => String(c)).join(',')).join('\n');
+      callback(text);
+    };
+    rd.readAsArrayBuffer(file);
+  } else {
+    const rd = new FileReader();
+    rd.onload = ev => callback(ev.target.result.replace(/^\uFEFF/, ''));
+    rd.readAsText(file, 'UTF-8');
+  }
+}
+
+function readAnyFile(file, callback) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (['xlsx','xls','ods'].includes(ext)) {
+    const rd = new FileReader();
+    rd.onload = ev => {
+      const wb = XLSX.read(ev.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      if (!rows.length) return;
+      const hdrs = rows[0].map(h => String(h).trim());
+      const lines = rows.map(r => r.map(c => String(c)).join('\t'));
+      callback(lines, hdrs, '\t');
+    };
+    rd.readAsArrayBuffer(file);
+  } else {
+    const rd = new FileReader();
+    rd.onload = ev => {
+      const text = ev.target.result.replace(/^\uFEFF/, '');
+      const sep = text.includes('\t') ? '\t' : ',';
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+      const hdrs = splitLine(lines[0], sep);
+      callback(lines, hdrs, sep);
+    };
+    rd.readAsText(file, 'UTF-8');
+  }
+}
+
+function splitLine(line, sep = ',') {
+  const res = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === sep && !inQ) { res.push(cur.trim()); cur = ''; }
+    else { cur += ch; }
+  }
+  res.push(cur.trim()); return res;
+}
+
+// ── Fee ────────────────────────────────────────────
+function calcFeeBase(kind) {
+  const m = { general: 'fee-general', equip: 'fee-equip', watch: 'fee-watch' };
+  return parseInt(document.getElementById(m[kind])?.value) || 0;
+}
+
+function recalcFees() {
+  participants.forEach(p => p.feeBase = calcFeeBase(p.kind));
+  render(); scheduleAutosave();
+}
+
+function getDisplayFee(p) {
+  const base = p.feeCustom !== null ? p.feeCustom : p.feeBase;
+  const apFee = parseInt(document.getElementById('fee-afterparty')?.value) || 0;
+  const apOn = document.getElementById('afterparty-on')?.checked;
+  const mode = document.getElementById('fee-display')?.value || 'total';
+  const ap = apOn && p.afterparty ? apFee : 0;
+  if (mode === 'event-only') return {main: base, sub: null};
+  if (mode === 'afterparty-only') return {main: ap, sub: null};
+  if (mode === 'both') return {main: base, sub: ap};
+  return {main: base + ap, sub: null};
+}
+
+function toggleAfterparty() {
+  const on = document.getElementById('afterparty-on').checked;
+  document.getElementById('afterparty-fee-wrap').style.display = on ? 'block' : 'none';
+  document.getElementById('col-afterparty').checked = on;
+  render();
+}
+
+function syncAfterpartySetting() {}
+
+// ── Sort ───────────────────────────────────────────
+function sortName(a, b) {
+  return a.localeCompare(b, 'ja', { sensitivity: 'base' });
+}
+
+// ── Render ─────────────────────────────────────────
+function render() {
+  const q = (document.getElementById('search')?.value || '').toLowerCase();
+  const showEntry = document.getElementById('col-entry')?.checked;
+  const showTw = document.getElementById('col-twitter')?.checked;
+  const showDis = document.getElementById('col-discord')?.checked;
+  const showFee = document.getElementById('col-fee')?.checked;
+  const showPaid = document.getElementById('col-paid')?.checked;
+  const showSeat = document.getElementById('col-seat')?.checked;
+  const showEquipPos = document.getElementById('col-equip-pos')?.checked;
+  const showAp = document.getElementById('col-afterparty')?.checked;
+  const showNote = document.getElementById('col-note')?.checked;
+  const apOn = document.getElementById('afterparty-on')?.checked;
+
+  const filterKind = k => {
+    if (currentTab === 'all') return true;
+    if (currentTab === 'general') return k === 'general';
+    if (currentTab === 'equip') return k === 'equip';
+    if (currentTab === 'watch') return k === 'watch';
+    if (currentTab === 'aponly') return k === 'aponly';
+    return true;
+  };
+
+  const filtered = participants.filter(p => {
+    if (!filterKind(p.kind)) return false;
+    if (!q) return true;
+    return [p.name, p.twitter, p.discord, p.note || ''].some(v => v.toLowerCase().includes(q));
+  });
+
+  // Update badges
+  const apOnlyCount = participants.filter(p => p.kind === 'aponly').length;
+  const mainCount = participants.filter(p => p.kind !== 'aponly').length;
+  document.getElementById('badge-all').textContent = mainCount;
+  document.getElementById('badge-general').textContent = participants.filter(p=>p.kind==='general').length;
+  document.getElementById('badge-equip').textContent = participants.filter(p=>p.kind==='equip').length;
+  document.getElementById('badge-watch').textContent = participants.filter(p=>p.kind==='watch').length;
+  const apOnlyBadge = document.getElementById('badge-aponly');
+  if (apOnlyBadge) apOnlyBadge.textContent = apOnlyCount;
+
+  // Stats
+  const checkedCount = filtered.filter(p => p.checked).length;
+  const totalFee = filtered.reduce((s, p) => {
+    const f = getDisplayFee(p); return s + f.main + (f.sub || 0);
+  }, 0);
+  const statsEl = document.getElementById('stats-area');
+  statsEl.innerHTML = `
+    <div class="stat acc"><div class="n">${checkedCount}/${filtered.length}</div><div class="l">受付済み</div></div>
+    <div class="stat"><div class="n">${filtered.filter(p=>p.kind==='general').length}</div><div class="l">一般</div></div>
+    <div class="stat"><div class="n">${filtered.filter(p=>p.kind==='equip').length}</div><div class="l">機材</div></div>
+    <div class="stat"><div class="n">${filtered.filter(p=>p.kind==='watch').length}</div><div class="l">見学</div></div>
+    ${apOnlyCount > 0 ? `<div class="stat" style="border-color:var(--amber)"><div class="n" style="color:var(--amber)">${filtered.filter(p=>p.kind==='aponly').length}</div><div class="l">二次会のみ</div></div>` : ''}
+    ${showFee ? `<div class="stat"><div class="n" style="font-size:14px">¥${totalFee.toLocaleString()}</div><div class="l">合計金額</div></div>` : ''}
+  `;
+
+  // Progress
+  const total = participants.filter(p=>p.kind!=='aponly').length;
+  const chk = participants.filter(p => p.checked && p.kind!=='aponly').length;
+  const pct = total > 0 ? Math.round(chk / total * 100) : 0;
+  document.getElementById('progress-area').innerHTML = `
+    <div style="display:flex;justify-content:space-between"><span>${chk} / ${total} 人</span><span style="color:var(--acc2)">${pct}%</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+  `;
+
+  if (filtered.length === 0) {
+    document.getElementById('table-area').innerHTML = participants.length === 0
+      ? '<div class="no-data">📂<p>CSVをインポートしてください</p></div>'
+      : '<div class="no-data">🔍<p>該当する参加者が見つかりません</p></div>';
+    return;
+  }
+
+  let html = '<table><thead><tr>';
+  html += '<th>✓</th><th>No</th><th>参加者名</th><th>種別</th>';
+  if (showEntry) html += '<th>順</th>';
+  if (showTw) html += '<th>Twitter/X</th>';
+  if (showDis) html += '<th>Discord</th>';
+  if (showSeat) html += '<th>卓番号</th>';
+  if (showEquipPos) html += '<th>機材位置</th>';
+  if (showFee) html += '<th>参加費</th>';
+  if (showAp && apOn) html += '<th>二次会</th>';
+  if (showPaid) html += '<th>支払い</th>';
+  if (showNote) html += '<th>備考</th>';
+  html += '</tr></thead><tbody>';
+
+  filtered.forEach((p, i) => {
+    const kindLabel = { general: '一般', equip: '機材', watch: '見学', aponly: '二次会のみ' }[p.kind] || p.kind;
+    const kindCls = p.kind === 'aponly' ? 'equip' : p.kind;
+    const rowStyle = p.kind === 'aponly' ? 'background:rgba(251,191,36,0.05)' : '';
+    const fee = getDisplayFee(p);
+    html += `<tr class="${p.checked ? 'checked' : ''}" style="${rowStyle}">`;
+    html += `<td class="chk-cell"><input type="checkbox" ${p.checked ? 'checked' : ''} onchange="toggleCheck(${p.id})"></td>`;
+    html += `<td style="color:var(--txt3);font-family:'DM Mono',monospace">${i + 1}</td>`;
+    html += `<td style="font-weight:500">${p.name}</td>`;
+    html += `<td><span class="badge ${kindCls}">${kindLabel}</span></td>`;
+    if (showEntry) html += `<td style="color:var(--txt3);font-family:'DM Mono',monospace">${p.entryOrder || '—'}</td>`;
+    if (showTw) html += `<td style="color:var(--txt2)">${p.twitter ? '@' + p.twitter : '—'}</td>`;
+    if (showDis) html += `<td style="color:var(--txt2);font-size:11px">${p.discord || '—'}</td>`;
+    if (showSeat) html += `<td><input class="seat-input" value="${p.seat}" placeholder="A卓" onchange="updateSeat(${p.id},this.value)"></td>`;
+    if (showEquipPos) html += `<td><input class="equip-input" value="${p.equipPos}" placeholder="機材1" onchange="updateEquipPos(${p.id},this.value)"></td>`;
+    if (showFee) {
+      const feeMode = document.getElementById('fee-display').value;
+      let feeHtml = feeMode === 'both'
+        ? `¥${fee.main.toLocaleString()} <span style="color:var(--txt3)">+¥${(fee.sub||0).toLocaleString()}</span>`
+        : `¥${fee.main.toLocaleString()}`;
+      html += `<td class="fee-cell">${feeHtml}
+        <input class="edit-fee" type="number" value="${p.feeCustom !== null ? p.feeCustom : ''}" placeholder="${p.feeBase}" title="個別金額" onchange="updateFeeCustom(${p.id},this.value)">
+      </td>`;
+    }
+    if (showAp && apOn) {
+      html += `<td><select class="afterparty-sel" onchange="updateAfterparty(${p.id},this.value)">
+        <option value="false" ${!p.afterparty ? 'selected' : ''}>不参加</option>
+        <option value="true" ${p.afterparty ? 'selected' : ''}>参加</option>
+      </select></td>`;
+    }
+    if (showPaid) {
+      html += `<td><span class="badge ${p.paid ? 'paid' : 'unpaid'}" style="cursor:pointer" onclick="togglePaid(${p.id})">${p.paid ? '支払済' : '未払い'}</span></td>`;
+    }
+    if (showNote) {
+      html += `<td><input style="width:120px;padding:2px 6px;border-radius:5px;border:1px solid var(--border2);background:var(--sur2);color:var(--txt);font-size:11px" value="${(p.note||'').replace(/"/g,'&quot;')}" placeholder="備考" onchange="updateNote(${p.id},this.value)"></td>`;
+    }
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('table-area').innerHTML = html;
+}
+
+function toggleCheck(id) {
+  const p = participants.find(x => x.id === id);
+  if (p) { p.checked = !p.checked; scheduleAutosave(); render(); }
+}
+function togglePaid(id) {
+  const p = participants.find(x => x.id === id);
+  if (p) { p.paid = !p.paid; scheduleAutosave(); render(); }
+}
+function updateSeat(id, v) { const p = participants.find(x => x.id === id); if (p) { p.seat = v; scheduleAutosave(); } }
+function updateEquipPos(id, v) { const p = participants.find(x => x.id === id); if (p) { p.equipPos = v; scheduleAutosave(); } }
+function updateFeeCustom(id, v) { const p = participants.find(x => x.id === id); if (p) { p.feeCustom = v === '' ? null : parseInt(v); scheduleAutosave(); render(); } }
+function updateAfterparty(id, v) { const p = participants.find(x => x.id === id); if (p) { p.afterparty = v === 'true'; scheduleAutosave(); render(); } }
+function updateNote(id, v) { const p = participants.find(x => x.id === id); if (p) { p.note = v; scheduleAutosave(); } }
+function clearChecks() {
+  if (!confirm('全員のチェックをリセットしますか？')) return;
+  participants.forEach(p => p.checked = false);
+  render(); scheduleAutosave();
+}
+
+// ── Tabs ───────────────────────────────────────────
+function switchTab(name) {
+  currentTab = name;
+  const names = ['all','general','equip','watch','aponly'];
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', names[i] === name));
+  render();
+}
+
+// ── Drag & Drop ────────────────────────────────────
+['dz-main','dz-seat','dz-ap'].forEach((id, idx) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('over'));
+  el.addEventListener('drop', e => {
+    e.preventDefault(); el.classList.remove('over');
+    const file = e.dataTransfer.files[0]; if (!file) return;
+    const fakeEvent = { target: { files: [file], value: '' } };
+    if (idx === 0) handleMainFile(fakeEvent);
+    else if (idx === 1) handleSeatFile(fakeEvent);
+    else handleAfterpartyFile(fakeEvent);
+  });
+});
+
+// ── Export ─────────────────────────────────────────
+function getExportRows(list) {
+  const apOn = document.getElementById('afterparty-on').checked;
+  const apFee = parseInt(document.getElementById('fee-afterparty')?.value) || 0;
+  return list.map((p, i) => {
+    const base = p.feeCustom !== null ? p.feeCustom : p.feeBase;
+    const ap = apOn && p.afterparty ? apFee : 0;
+    const kindLabel = { general: '一般', equip: '機材', watch: '見学', aponly: '二次会のみ' }[p.kind] || p.kind;
+    return {
+      'No': i + 1,
+      '参加者名': p.name,
+      '種別': kindLabel,
+      'エントリー順': p.entryOrder || '',
+      'TwitterID': p.twitter ? '@' + p.twitter : '',
+      'DiscordID': p.discord,
+      '卓番号': p.seat,
+      '機材位置': p.equipPos,
+      '参加費': base,
+      '二次会費': ap,
+      '合計': base + ap,
+      '支払い': p.paid ? '支払済' : '未払い',
+      '二次会': apOn ? (p.afterparty ? '参加' : '不参加') : '',
+      '備考': p.note || '',
+      '受付チェック': p.checked ? '✓' : '',
+    };
+  });
+}
+
+function exportXLSX() {
+  if (!participants.length) { showToast('データがありません', 'err'); return; }
+  const wb = XLSX.utils.book_new();
+  const sheets = [
+    { name: '全体', data: participants.filter(p=>p.kind!=='aponly') },
+    { name: '一般', data: participants.filter(p => p.kind === 'general') },
+    { name: '機材', data: participants.filter(p => p.kind === 'equip') },
+    { name: '見学', data: participants.filter(p => p.kind === 'watch') },
+    { name: '二次会のみ', data: participants.filter(p => p.kind === 'aponly') },
+  ];
+  sheets.forEach(s => {
+    if (s.data.length === 0) return;
+    const ws = XLSX.utils.json_to_sheet(getExportRows(s.data));
+    XLSX.utils.book_append_sheet(wb, ws, s.name);
+  });
+  const now = new Date();
+  XLSX.writeFile(wb, `受付リスト_${now.getMonth()+1}${now.getDate()}.xlsx`);
+  showToast('Excelファイルをダウンロードしました', 'ok');
+}
+
+function exportCSV() {
+  if (!participants.length) { showToast('データがありません', 'err'); return; }
+  const rows = getExportRows(participants);
+  const keys = Object.keys(rows[0]);
+  let csv = keys.join(',') + '\n';
+  rows.forEach(r => { csv += keys.map(k => `"${String(r[k]).replace(/"/g,'""')}"`).join(',') + '\n'; });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  const now = new Date();
+  a.download = `受付リスト_${now.getMonth()+1}${now.getDate()}.csv`; a.click();
+  showToast('CSVをダウンロードしました', 'ok');
+}
+
+// ── Autosave ────────────────────────────────────────
+function scheduleAutosave() {
+  if (autosaveTimer) clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => {
+    try {
+      const fees = {
+        general: document.getElementById('fee-general').value,
+        equip: document.getElementById('fee-equip').value,
+        watch: document.getElementById('fee-watch').value,
+        afterparty: document.getElementById('fee-afterparty').value,
+        apOn: document.getElementById('afterparty-on').checked,
+      };
+      localStorage.setItem(LS_KEY, JSON.stringify({ participants, fees, savedAt: new Date().toISOString() }));
+      const d = new Date();
+      const t = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      document.getElementById('autosave-dot').style.background = 'var(--green)';
+      document.getElementById('autosave-lbl').textContent = `自動保存 ${t}`;
+    } catch(e) { console.warn('autosave failed', e); }
+  }, 1500);
+}
+
+// ── Toast ──────────────────────────────────────────
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// ── Init ───────────────────────────────────────────
+(function init() {
+  try {
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data.participants?.length) {
+        participants = data.participants;
+        if (data.fees) {
+          document.getElementById('fee-general').value = data.fees.general;
+          document.getElementById('fee-equip').value = data.fees.equip;
+          document.getElementById('fee-watch').value = data.fees.watch;
+          document.getElementById('fee-afterparty').value = data.fees.afterparty;
+          if (data.fees.apOn) {
+            document.getElementById('afterparty-on').checked = true;
+            document.getElementById('afterparty-fee-wrap').style.display = 'block';
+            document.getElementById('col-afterparty').checked = true;
+          }
+        }
+        render();
+        const d = new Date(data.savedAt);
+        const t = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        document.getElementById('autosave-dot').style.background = 'var(--green)';
+        document.getElementById('autosave-lbl').textContent = `自動保存 ${t}`;
+        showToast('前回のデータを復元しました', 'ok');
+      }
+    }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
