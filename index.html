@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NexSeat</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 
 <style>
 :root{
@@ -214,11 +214,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--user-bg);color:var(-
   <!-- CSV/Excel Import -->
   <div class="sb-section">
     <div class="sb-title">参加者インポート</div>
-    <div class="dropzone" id="dropzone" onclick="document.getElementById('csvInput').click()">
+    <label class="dropzone" id="dropzone" for="csvInput">
       <div class="dropzone-icon">📂</div>
-      <p><strong>CSV / Excel / スプシ</strong><br>ドロップまたはクリック</p>
-    </div>
-    <input type="file" id="csvInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFile(event)">
+      <p><strong>Tonemel / start.gg CSV</strong><br>ドロップまたはクリック</p>
+    </label>
+    <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleFile(event)">
     <div id="participantArea" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
         <span id="participantCount" style="font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace"></span>
@@ -470,7 +470,6 @@ function updateHints(){
 function handleFile(e){
   const f=e.target.files[0];if(!f)return;
   const ext=f.name.split('.').pop().toLowerCase();
-  if(ext==='xlsx'||ext==='xls'){readExcel(f);}
   else{
     const r=new FileReader();
     r.onload=ev=>{const t=ev.target.result;isGarbled(t)?reread(f):parseCSVAuto(t);};
@@ -479,15 +478,6 @@ function handleFile(e){
   e.target.value='';
 }
 
-function readExcel(f){
-  const r=new FileReader();
-  r.onload=ev=>{
-    try{
-      const wb=XLSX.read(ev.target.result,{type:'array'});
-      const ws=wb.Sheets[wb.SheetNames[0]];
-      const data=XLSX.utils.sheet_to_csv(ws);
-      parseCSVAuto(data);
-    }catch(err){showToast('Excelの読み込みに失敗しました','error');}
   };
   r.readAsArrayBuffer(f);
 }
@@ -501,8 +491,7 @@ dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
 dz.addEventListener('drop',e=>{
   e.preventDefault();dz.classList.remove('dragover');
   const f=e.dataTransfer.files[0];if(!f)return;
-  const ext=f.name.split('.').pop().toLowerCase();
-  if(ext==='xlsx'||ext==='xls'){readExcel(f);return;}
+  
   const r=new FileReader();r.onload=ev=>{const t=ev.target.result;isGarbled(t)?reread(f):parseCSVAuto(t);};r.readAsText(f,'UTF-8');
 });
 
