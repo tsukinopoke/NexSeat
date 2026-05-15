@@ -6,7 +6,7 @@
 <title>NexSeat</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <style>
 :root{
   --bg:#0c0c0f;--surface:#131318;--surface2:#1a1a22;--surface3:#22222e;
@@ -192,7 +192,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--user-bg);color:var(-
     <button class="btn sm" onclick="exportCSV()">↓ CSV</button>
     <button class="btn sm" onclick="document.getElementById('restoreCsvIn').click()">↺ 復元</button>
     <input type="file" id="restoreCsvIn" accept=".csv" style="display:none" onchange="restoreFromCSV(event)">
-    <button class="btn sm success" onclick="saveImage()">🖼 画像保存</button>
+    
     <button class="btn sm primary" onclick="window.print()">⊞ 印刷</button>
   </div>
 </div>
@@ -894,26 +894,6 @@ function setBgPicker(v){document.documentElement.style.setProperty('--user-bg',v
 function setBgText(v){if(/^#[0-9a-fA-F]{3,6}$/.test(v)){document.documentElement.style.setProperty('--user-bg',v);document.getElementById('bgColorPicker').value=v;document.querySelectorAll('.bg-swatch').forEach(s=>s.classList.remove('active'));}}
 
 // ── Image export ──────────────────────────────────────
-function saveImage(){
-  showToast('画像を生成中...','');
-  const target=document.getElementById('venueCapture');
-  // temporarily hide edit buttons inside cards
-  const bg=getComputedStyle(document.documentElement).getPropertyValue('--user-bg').trim()||'#0c0c0f';
-  html2canvas(target,{
-    backgroundColor:bg,
-    scale:2,
-    useCORS:true,
-    logging:false,
-  }).then(canvas=>{
-    const a=document.createElement('a');
-    const now=new Date();
-    const ds=`${now.getMonth()+1}${now.getDate()}_${now.getHours()}${String(now.getMinutes()).padStart(2,'0')}`;
-    a.download=`座席表_${ds}.png`;
-    a.href=canvas.toDataURL('image/png');
-    a.click();
-    showToast('画像を保存しました 🖼','success');
-  }).catch(()=>showToast('画像の生成に失敗しました','error'));
-}
 
 // ── Misc ──────────────────────────────────────────────
 function clearAllNames(){
