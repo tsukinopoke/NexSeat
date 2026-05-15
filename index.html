@@ -214,10 +214,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--user-bg);color:var(-
   <!-- CSV/Excel Import -->
   <div class="sb-section">
     <div class="sb-title">参加者インポート</div>
-    <label class="dropzone" id="dropzone" for="csvInput">
+    <div class="dropzone" id="dropzone">
       <div class="dropzone-icon">📂</div>
       <p><strong>Tonemel / start.gg CSV</strong><br>ドロップまたはクリック</p>
-    </label>
+    </div>
     <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleFile(event)">
     <div id="participantArea" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
@@ -947,6 +947,10 @@ function scheduleSave(){
 
 // ── Init ─────────────────────────────────────────────
 (function init(){
+  // file input click via JS (avoids Edge freeze with inline onclick)
+  document.getElementById('dropzone').addEventListener('click', function(){
+    document.getElementById('csvInput').click();
+  });
   try{
     const saved=localStorage.getItem(LS_KEY);
     if(saved){
